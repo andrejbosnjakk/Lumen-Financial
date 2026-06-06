@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { ArrowLeftRight, BarChart2, LayoutDashboard, LogOut, User } from 'lucide-react'
+import { ArrowLeftRight, BarChart2, BriefcaseBusiness, LayoutDashboard, LogOut, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { LumenLogo } from '@/components/Logo'
 import ThemeSwitcher from '@/components/ThemeSwitcher'
@@ -12,6 +12,7 @@ const NAV = [
   { href: '/dashboard', label: 'Overview', Icon: LayoutDashboard },
   { href: '/transactions', label: 'Transactions', Icon: ArrowLeftRight },
   { href: '/analytics', label: 'Analytics', Icon: BarChart2 },
+  { href: '/portfolio', label: 'Portfolio', Icon: BriefcaseBusiness },
   { href: '/account', label: 'Account', Icon: User },
 ]
 

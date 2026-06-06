@@ -64,6 +64,20 @@
 - [ ] **Transaction notes** — free-text annotation field per transaction via edit modal; stored in `note` column on transactions table
 
 ### Reach / Differentiators
-- [ ] **Brokerage integration & portfolio page** — connect account to a brokerage (e.g. DEGIRO, eToro, Interactive Brokers); import positions via CSV export or OAuth API; dedicated Portfolio page showing: holdings table (ticker, quantity, avg cost, current price, P&L), total portfolio value, allocation pie chart by asset/sector, performance over time (line chart); store positions in a `portfolio_positions` table linked to user; stretch: live price polling via a market data API (e.g. Yahoo Finance, Twelve Data)
+- [x] **Brokerage integration & portfolio page** — Trading 212 (live/demo) via API key; connect form validates key against T212 before saving; portfolio view shows 4 stat cards (value, invested, unrealized P&L, cash) + sortable positions table (ticker, qty, avg cost, current price, market value, P&L, P&L%); refresh + disconnect actions; **requires Supabase migration:**
+  ```sql
+  CREATE TABLE brokerage_connections (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    broker TEXT NOT NULL DEFAULT 'trading212',
+    api_key TEXT NOT NULL,
+    account_type TEXT NOT NULL DEFAULT 'live',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id, broker)
+  );
+  ALTER TABLE brokerage_connections ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "user owns connection" ON brokerage_connections
+    FOR ALL USING (auth.uid() = user_id);
+  ```
 - [ ] **Multi-bank CSV support** — add column mappings for ING, ABN AMRO, Rabobank; auto-detect bank from headers; same categorization pipeline after parsing
 - [x] **Export as PDF report** — "↓ Export PDF" button on analytics page; `lib/pdfReport.ts` uses `jspdf` + `jspdf-autotable`; includes dark header, summary totals, spending by category with % share, top merchants table, page footer; dynamically imported to keep jsPDF out of SSR bundle; filename includes period + date

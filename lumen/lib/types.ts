@@ -60,6 +60,43 @@ export type Profile = {
   updated_at: string
 }
 
+export type BrokerageConnection = {
+  id: string
+  user_id: string
+  broker: 'trading212'
+  api_key: string
+  api_secret: string
+  account_type: 'live' | 'demo'
+  created_at: string
+}
+
+export type T212Position = {
+  ticker: string
+  quantity: number
+  averagePrice: number
+  currentPrice: number
+  ppl: number
+  fxPpl: number
+  initialFillDate: string
+  maxSell: number
+}
+
+export type T212Cash = {
+  blocked: number
+  free: number
+  invested: number
+  pieCash: number
+  ppl: number
+  result: number
+  total: number
+}
+
+export type PortfolioData = {
+  positions: T212Position[]
+  cash: T212Cash
+  accountType: 'live' | 'demo'
+}
+
 export const CATEGORIES = [
   'Groceries',
   'Transport',
