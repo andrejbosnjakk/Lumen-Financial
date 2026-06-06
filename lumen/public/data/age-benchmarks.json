@@ -1,0 +1,91 @@
+{
+  "18-24": {
+    "Entertainment": 27.35,
+    "Fitness": 57.83,
+    "Groceries": 36.93,
+    "Healthcare": 56.23,
+    "Other": 91.41,
+    "Restaurants & Food": 48.35,
+    "Shopping": 57.18,
+    "Subscriptions": 22.47,
+    "Transfers": 326.32,
+    "Transport": 52.61,
+    "Utilities": 20.44
+  },
+  "25-34": {
+    "Entertainment": 28.09,
+    "Fitness": 50.62,
+    "Groceries": 39.4,
+    "Healthcare": 58.17,
+    "Other": 86.47,
+    "Restaurants & Food": 50.84,
+    "Shopping": 58.16,
+    "Subscriptions": 23.31,
+    "Transfers": 279.5,
+    "Transport": 54.41,
+    "Utilities": 19.49
+  },
+  "35-44": {
+    "Entertainment": 28.48,
+    "Fitness": 56.71,
+    "Groceries": 40.84,
+    "Healthcare": 59.73,
+    "Other": 100.15,
+    "Restaurants & Food": 53.52,
+    "Shopping": 57.4,
+    "Subscriptions": 22.67,
+    "Transfers": 314.6,
+    "Transport": 56.23,
+    "Utilities": 28.8
+  },
+  "45-54": {
+    "Entertainment": 28.02,
+    "Fitness": 52.9,
+    "Groceries": 39.5,
+    "Healthcare": 62.68,
+    "Other": 87.03,
+    "Restaurants & Food": 50.49,
+    "Shopping": 54.21,
+    "Subscriptions": 21.8,
+    "Transfers": 354.12,
+    "Transport": 55.66,
+    "Utilities": 18.91
+  },
+  "55-64": {
+    "Entertainment": 29.89,
+    "Fitness": 53.21,
+    "Groceries": 42.9,
+    "Healthcare": 50.71,
+    "Other": 78.42,
+    "Restaurants & Food": 58.08,
+    "Shopping": 62.76,
+    "Subscriptions": 25.55,
+    "Transfers": 197.51,
+    "Transport": 66.54,
+    "Utilities": 29.74
+  },
+  "65-74": {
+    "Entertainment": 22.68,
+    "Fitness": 66.7,
+    "Groceries": 43.06,
+    "Healthcare": 58.79,
+    "Other": 70.68,
+    "Restaurants & Food": 54.14,
+    "Shopping": 46.9,
+    "Subscriptions": 23.06,
+    "Transfers": 239.41,
+    "Transport": 62.49,
+    "Utilities": 55.72
+  },
+  "75+": {
+    "Entertainment": 33.94,
+    "Groceries": 45.57,
+    "Healthcare": 46.45,
+    "Other": 164.8,
+    "Restaurants & Food": 79.97,
+    "Shopping": 51.23,
+    "Subscriptions": 18.92,
+    "Transport": 64.68,
+    "Utilities": 23.61
+  }
+}

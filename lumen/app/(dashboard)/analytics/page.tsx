@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { Download, Store, TrendingDown, TrendingUp, WalletCards } from 'lucide-react'
 import FinancialChat from './FinancialChat'
 import SubscriptionTracker from './SubscriptionTracker'
+import ZombieTracker from './ZombieTracker'
+import AgeComparison from './AgeComparison'
 import {
   Bar,
   BarChart,
@@ -131,7 +133,22 @@ export default function AnalyticsPage() {
     setExporting(true)
     try {
       const { generatePdfReport } = await import('@/lib/pdfReport')
-      await generatePdfReport(data, period)
+
+      // Fetch supplemental data in parallel for the PDF
+      const ageGroup = localStorage.getItem('lumen_age_group') ?? ''
+      const [subsRes, insightsRes, ageRes] = await Promise.all([
+        fetch('/api/subscriptions').then(r => r.json()).catch(() => ({})),
+        fetch('/api/insights').then(r => r.json()).catch(() => ({})),
+        ageGroup ? fetch(`/api/insights/age?ageGroup=${encodeURIComponent(ageGroup)}`).then(r => r.json()).catch(() => ({})) : Promise.resolve({}),
+      ])
+
+      await generatePdfReport(data, period, {
+        subscriptions: subsRes.subscriptions ?? [],
+        zombies: subsRes.zombies ?? [],
+        insights: insightsRes.insights ?? [],
+        ageComparisons: ageRes.comparisons ?? [],
+        ageGroup: ageGroup || undefined,
+      })
     } finally {
       setExporting(false)
     }
@@ -345,6 +362,8 @@ export default function AnalyticsPage() {
           )}
 
           <SubscriptionTracker />
+          <ZombieTracker />
+          <AgeComparison />
           <FinancialChat period={period} />
         </div>
       )}
