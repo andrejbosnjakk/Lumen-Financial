@@ -24,6 +24,8 @@
 
 ## P3 — Polish (time permitting)
 
+- [x] **Lumen frontend rework** — logo SVG rebuilt with layered 4-petal depth and center glow; DM Sans wired through Tailwind; login/signup redesigned as split-screen auth pages; sidebar refined with avatar, filled active state, and ambient glow; dashboard polished with hero balance card, stat cards, and recent transactions list
+- [x] **Analytics/account theme pass** — analytics and account pages brought into the Lumen dark dashboard system; PDF export preserved; sidebar theme switcher added for violet, green, and amber accent variants
 - [x] **User profile** — `profiles` table (first_name, last_name, phone, date_of_birth); account page shows avatar with initials, editable form, email read-only; `GET/PATCH /api/profile` with upsert; **requires Supabase migration:**
   ```sql
   CREATE TABLE profiles (

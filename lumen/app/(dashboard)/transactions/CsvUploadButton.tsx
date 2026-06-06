@@ -1,6 +1,8 @@
 'use client'
 
 import { useRef, useState, useCallback } from 'react'
+import { motion } from 'framer-motion'
+import { Upload } from 'lucide-react'
 import Papa from 'papaparse'
 import { validateColumns, type RevolutRow } from '@/lib/ingester'
 import { clearAnalyticsCache } from '@/lib/analyticsCache'
@@ -73,22 +75,37 @@ export default function CsvUploadButton({ onUploadSuccess }: Props) {
   return (
     <div className="flex flex-col items-end gap-1.5">
       <input ref={inputRef} type="file" accept=".csv" onChange={handleFileChange} className="hidden" />
-      <button
+      <motion.button
         onClick={() => inputRef.current?.click()}
         onDrop={handleDrop}
         onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
         onDragLeave={() => setDragOver(false)}
         disabled={uploading}
-        className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 ${
-          dragOver
-            ? 'bg-gray-700 text-white ring-2 ring-gray-400 ring-offset-1'
-            : 'bg-gray-900 text-white hover:bg-gray-700'
-        }`}
+        whileTap={{ scale: 0.97 }}
+        animate={{
+          background: dragOver
+            ? 'rgb(var(--lumen-accent-rgb) / 0.2)'
+            : uploading
+            ? 'rgb(var(--lumen-accent-rgb) / 0.08)'
+            : 'rgb(var(--lumen-accent-rgb) / 0.12)',
+          borderColor: dragOver ? 'rgb(var(--lumen-accent-rgb))' : 'rgb(var(--lumen-accent-rgb) / 0.3)',
+        }}
+        transition={{ duration: 0.15 }}
+        className="flex items-center gap-2 px-4 py-2 rounded-xl border text-[13px] font-medium text-lumen-accent disabled:opacity-50 transition-colors"
       >
-        {uploading ? 'Uploading…' : dragOver ? 'Drop to upload' : '↑ Upload CSV'}
-      </button>
+        {uploading ? (
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            className="w-3.5 h-3.5 border-2 border-lumen-accent/30 border-t-lumen-accent rounded-full"
+          />
+        ) : (
+          <Upload size={14} />
+        )}
+        {uploading ? 'Uploading…' : dragOver ? 'Drop to upload' : 'Upload CSV'}
+      </motion.button>
       {status && (
-        <p className={`text-xs ${status.type === 'success' ? 'text-emerald-600' : 'text-red-500'}`}>
+        <p className={`text-[11px] ${status.type === 'success' ? 'text-lumen-success' : 'text-lumen-danger'}`}>
           {status.message}
         </p>
       )}

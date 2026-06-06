@@ -121,9 +121,9 @@ export default function TransactionsPage() {
     <div>
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Transactions</h1>
+          <h1 className="text-2xl font-semibold text-lumen-text">Transactions</h1>
           {count > 0 && (
-            <p className="text-sm text-gray-400 mt-0.5">{count} total</p>
+            <p className="text-[13px] text-lumen-muted mt-0.5">{count} total</p>
           )}
         </div>
         <CsvUploadButton onUploadSuccess={() => { setPage(1); fetchTransactions() }} />
@@ -141,14 +141,16 @@ export default function TransactionsPage() {
       />
 
       {error && (
-        <p className="text-sm text-red-500 mb-4">{error}</p>
+        <p className="text-[13px] text-lumen-danger mb-4">{error}</p>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-lumen-surface rounded-2xl border border-lumen-border overflow-hidden">
         {loading ? (
-          <div className="p-12 text-center text-sm text-gray-400">Loading…</div>
+          <div className="p-12 flex items-center justify-center">
+            <div className="w-5 h-5 border-2 border-lumen-accent/30 border-t-lumen-accent rounded-full animate-spin" />
+          </div>
         ) : transactions.length === 0 ? (
-          <div className="p-12 text-center text-sm text-gray-400">
+          <div className="p-12 text-center text-[13px] text-lumen-muted">
             {hasActiveFilters
               ? 'No transactions match your filters'
               : 'No transactions yet — upload a CSV to get started'}
@@ -156,12 +158,12 @@ export default function TransactionsPage() {
         ) : (
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Description</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Type</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Category</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Amount</th>
+              <tr className="border-b border-lumen-border bg-lumen-surface-2">
+                <th className="px-4 py-3 text-left text-[11px] font-medium text-lumen-muted uppercase tracking-wider">Date</th>
+                <th className="px-4 py-3 text-left text-[11px] font-medium text-lumen-muted uppercase tracking-wider">Description</th>
+                <th className="px-4 py-3 text-left text-[11px] font-medium text-lumen-muted uppercase tracking-wider">Type</th>
+                <th className="px-4 py-3 text-left text-[11px] font-medium text-lumen-muted uppercase tracking-wider">Category</th>
+                <th className="px-4 py-3 text-right text-[11px] font-medium text-lumen-muted uppercase tracking-wider">Amount</th>
                 <th className="px-4 py-3 w-20" />
               </tr>
             </thead>

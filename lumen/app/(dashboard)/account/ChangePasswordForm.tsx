@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { KeyRound } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 export default function ChangePasswordForm() {
@@ -32,36 +33,43 @@ export default function ChangePasswordForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 max-w-sm">
-      <input
-        type="password"
-        placeholder="New password"
-        required
-        minLength={6}
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-      />
-      <input
-        type="password"
-        placeholder="Confirm new password"
-        required
-        minLength={6}
-        value={confirm}
-        onChange={(e) => setConfirm(e.target.value)}
-        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-      />
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="mb-2 block text-sm font-medium text-lumen-text">New password</label>
+        <input
+          type="password"
+          placeholder="At least 6 characters"
+          required
+          minLength={6}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="lumen-input px-4 py-3 text-sm placeholder:text-lumen-muted/55"
+        />
+      </div>
+      <div>
+        <label className="mb-2 block text-sm font-medium text-lumen-text">Confirm password</label>
+        <input
+          type="password"
+          placeholder="Repeat new password"
+          required
+          minLength={6}
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          className="lumen-input px-4 py-3 text-sm placeholder:text-lumen-muted/55"
+        />
+      </div>
       {message && (
-        <p className={`text-sm ${message.type === 'success' ? 'text-emerald-600' : 'text-red-500'}`}>
+        <p className={`text-sm ${message.type === 'success' ? 'text-lumen-success' : 'text-lumen-danger'}`}>
           {message.text}
         </p>
       )}
       <button
         type="submit"
         disabled={loading}
-        className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors"
+        className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-lumen-accent px-4 text-sm font-semibold text-white shadow-accent-glow-sm transition-colors hover:bg-lumen-accent-dim disabled:cursor-not-allowed disabled:opacity-55"
       >
-        {loading ? 'Updating…' : 'Update password'}
+        <KeyRound size={16} />
+        {loading ? 'Updating...' : 'Update password'}
       </button>
     </form>
   )

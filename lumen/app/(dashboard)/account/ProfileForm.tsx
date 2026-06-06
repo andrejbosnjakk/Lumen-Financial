@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Save } from 'lucide-react'
 import type { Profile } from '@/lib/types'
 
 interface Props {
@@ -13,7 +14,7 @@ type Status = { type: 'success' | 'error'; message: string }
 function initials(firstName: string, lastName: string, email: string) {
   if (firstName && lastName) return `${firstName[0]}${lastName[0]}`.toUpperCase()
   if (firstName) return firstName[0].toUpperCase()
-  return email[0].toUpperCase()
+  return email[0]?.toUpperCase() ?? 'L'
 }
 
 export default function ProfileForm({ initialProfile, email }: Props) {
@@ -24,7 +25,7 @@ export default function ProfileForm({ initialProfile, email }: Props) {
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState<Status | null>(null)
 
-  const displayName = [firstName, lastName].filter(Boolean).join(' ') || null
+  const displayName = [firstName, lastName].filter(Boolean).join(' ') || 'Add your name'
   const avatarLetters = initials(firstName, lastName, email)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -54,95 +55,93 @@ export default function ProfileForm({ initialProfile, email }: Props) {
   }
 
   return (
-    <div className="max-w-lg">
-      {/* Avatar + name */}
-      <div className="flex items-center gap-4 mb-8">
-        <div className="w-14 h-14 rounded-full bg-gray-900 text-white flex items-center justify-center text-lg font-semibold select-none">
-          {avatarLetters}
-        </div>
-        <div>
-          <p className="font-medium text-gray-900">{displayName ?? 'Add your name below'}</p>
-          <p className="text-sm text-gray-500">{email}</p>
+    <section className="lumen-panel overflow-hidden rounded-[28px]">
+      <div className="border-b border-white/[0.07] p-5 sm:p-6">
+        <div className="flex items-center gap-4">
+          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-[24px] bg-lumen-accent text-xl font-bold text-white shadow-accent-glow-sm">
+            {avatarLetters}
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-lg font-semibold text-lumen-text">{displayName}</p>
+            <p className="truncate text-sm text-lumen-muted">{email}</p>
+          </div>
         </div>
       </div>
 
-      {/* Form card */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-sm font-semibold text-gray-900 mb-6">Personal information</h2>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">First name</label>
-              <input
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="First name"
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-300"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Last name</label>
-              <input
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                placeholder="Last name"
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-300"
-              />
-            </div>
-          </div>
-
+      <form onSubmit={handleSubmit} className="space-y-5 p-5 sm:p-6">
+        <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Email</label>
+            <label className="mb-2 block text-sm font-medium text-lumen-text">First name</label>
             <input
-              type="email"
-              value={email}
-              readOnly
-              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-400 cursor-not-allowed"
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="First name"
+              className="lumen-input px-4 py-3 text-sm placeholder:text-lumen-muted/55"
             />
           </div>
-
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Phone</label>
+            <label className="mb-2 block text-sm font-medium text-lumen-text">Last name</label>
+            <input
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Last name"
+              className="lumen-input px-4 py-3 text-sm placeholder:text-lumen-muted/55"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="mb-2 block text-sm font-medium text-lumen-text">Email</label>
+          <input
+            type="email"
+            value={email}
+            readOnly
+            className="lumen-input cursor-not-allowed px-4 py-3 text-sm text-lumen-muted opacity-75"
+          />
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-2 block text-sm font-medium text-lumen-text">Phone</label>
             <input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+31 6 12 34 56 78"
-              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-300"
+              className="lumen-input px-4 py-3 text-sm placeholder:text-lumen-muted/55"
             />
           </div>
-
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Date of birth</label>
+            <label className="mb-2 block text-sm font-medium text-lumen-text">Date of birth</label>
             <input
               type="date"
               value={dob}
               onChange={(e) => setDob(e.target.value)}
-              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-300"
+              className="lumen-input px-4 py-3 text-sm"
             />
           </div>
+        </div>
 
-          <div className="flex items-center justify-between pt-2">
-            {status ? (
-              <p className={`text-xs ${status.type === 'success' ? 'text-emerald-600' : 'text-red-500'}`}>
-                {status.message}
-              </p>
-            ) : (
-              <span />
-            )}
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
-            >
-              {saving ? 'Saving…' : 'Save changes'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
+          {status ? (
+            <p className={`text-sm ${status.type === 'success' ? 'text-lumen-success' : 'text-lumen-danger'}`}>
+              {status.message}
+            </p>
+          ) : (
+            <p className="text-sm text-lumen-muted">Keep your demo account details tidy.</p>
+          )}
+          <button
+            type="submit"
+            disabled={saving}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-lumen-accent px-4 text-sm font-semibold text-white shadow-accent-glow-sm transition-colors hover:bg-lumen-accent-dim disabled:cursor-not-allowed disabled:opacity-55"
+          >
+            <Save size={16} />
+            {saving ? 'Saving...' : 'Save changes'}
+          </button>
+        </div>
+      </form>
+    </section>
   )
 }

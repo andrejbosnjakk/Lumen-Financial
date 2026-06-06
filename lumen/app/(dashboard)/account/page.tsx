@@ -1,3 +1,4 @@
+import { Clock3, FileText, ShieldCheck, UploadCloud } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import ChangePasswordForm from './ChangePasswordForm'
 import ProfileForm from './ProfileForm'
@@ -23,52 +24,103 @@ export default async function AccountPage() {
     .eq('user_id', user!.id)
     .order('created_at', { ascending: false })
 
+  const totalImported = batches?.reduce((sum, batch) => sum + Number(batch.imported_count ?? 0), 0) ?? 0
+  const totalDuplicates = batches?.reduce((sum, batch) => sum + Number(batch.duplicate_count ?? 0), 0) ?? 0
+
   return (
-    <div className="max-w-2xl space-y-8">
-      <h1 className="text-2xl font-semibold text-gray-900">Account</h1>
-
-      {/* Profile */}
-      <ProfileForm
-        initialProfile={profile as Profile | null}
-        email={user?.email ?? ''}
-      />
-
-      {/* Change password */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">Change Password</h2>
-        <ChangePasswordForm />
-      </div>
-
-      {/* Import history */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-semibold text-gray-900">Import History</h2>
+    <div className="space-y-6">
+      <div className="animate-fade-up flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+        <div>
+          <p className="text-sm font-medium text-lumen-accent">Account</p>
+          <h1 className="mt-2 text-3xl font-semibold text-lumen-text sm:text-4xl">Settings that stay out of the way.</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-lumen-muted">
+            Manage your profile, security, and import history without leaving the Lumen workspace.
+          </p>
         </div>
-        {!batches || batches.length === 0 ? (
-          <p className="px-6 py-8 text-sm text-gray-400">No imports yet.</p>
-        ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wide">File</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wide">Imported</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wide">Duplicates</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wide">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {batches.map((b) => (
-                <tr key={b.id} className="border-b border-gray-50 last:border-0">
-                  <td className="px-6 py-3 text-sm text-gray-900 max-w-xs truncate">{b.filename}</td>
-                  <td className="px-6 py-3 text-sm text-gray-900 text-right">{b.imported_count}</td>
-                  <td className="px-6 py-3 text-sm text-gray-400 text-right">{b.duplicate_count}</td>
-                  <td className="px-6 py-3 text-sm text-gray-400 text-right whitespace-nowrap">{fmt(b.created_at)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
       </div>
+
+      <div className="grid gap-5 xl:grid-cols-[1.25fr_0.75fr]">
+        <ProfileForm initialProfile={profile as Profile | null} email={user?.email ?? ''} />
+
+        <div className="space-y-5">
+          <section className="lumen-panel rounded-[28px] p-5 sm:p-6">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-lumen-accent/10 text-lumen-accent">
+                <ShieldCheck size={20} />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-lumen-text">Security</h2>
+                <p className="mt-1 text-xs text-lumen-muted">Update the password for this account.</p>
+              </div>
+            </div>
+            <ChangePasswordForm />
+          </section>
+
+          <section className="lumen-panel rounded-[28px] p-5 sm:p-6">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-lumen-accent/10 text-lumen-accent">
+                <UploadCloud size={20} />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-lumen-text">Import totals</h2>
+                <p className="mt-1 text-xs text-lumen-muted">A quick health check on uploaded data.</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl bg-white/[0.04] p-4">
+                <p className="text-xs text-lumen-muted">Imported</p>
+                <p className="mt-2 text-2xl font-semibold text-lumen-text tabular-nums">{totalImported}</p>
+              </div>
+              <div className="rounded-2xl bg-white/[0.04] p-4">
+                <p className="text-xs text-lumen-muted">Duplicates</p>
+                <p className="mt-2 text-2xl font-semibold text-lumen-text tabular-nums">{totalDuplicates}</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <section className="animate-fade-up stagger-2 lumen-panel overflow-hidden rounded-[28px]">
+        <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4 sm:px-6">
+          <div>
+            <h2 className="text-sm font-semibold text-lumen-text">Import history</h2>
+            <p className="mt-1 text-xs text-lumen-muted">Every CSV batch that has shaped your analytics.</p>
+          </div>
+        </div>
+
+        {!batches || batches.length === 0 ? (
+          <div className="px-6 py-12 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-lumen-accent/10 text-lumen-accent">
+              <FileText size={20} />
+            </div>
+            <p className="text-sm font-semibold text-lumen-text">No imports yet</p>
+            <p className="mt-1 text-sm text-lumen-muted">Upload a Revolut CSV to start building history.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-white/[0.07]">
+            {batches.map((b) => (
+              <div key={b.id} className="grid gap-3 px-5 py-4 transition-colors hover:bg-white/[0.035] sm:grid-cols-[1fr_110px_110px_130px] sm:items-center sm:px-6">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-lumen-accent/10 text-lumen-accent">
+                    <FileText size={18} />
+                  </div>
+                  <p className="truncate text-sm font-semibold text-lumen-text">{b.filename}</p>
+                </div>
+                <p className="text-sm text-lumen-muted sm:text-right">
+                  <span className="sm:hidden">Imported: </span>{b.imported_count}
+                </p>
+                <p className="text-sm text-lumen-muted sm:text-right">
+                  <span className="sm:hidden">Duplicates: </span>{b.duplicate_count}
+                </p>
+                <p className="flex items-center gap-2 text-sm text-lumen-muted sm:justify-end">
+                  <Clock3 size={14} />
+                  {fmt(b.created_at)}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   )
 }
