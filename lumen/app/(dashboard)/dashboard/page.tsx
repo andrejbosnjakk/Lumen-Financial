@@ -100,7 +100,7 @@ export default async function DashboardPage() {
         </div>
         <Link
           href="/transactions"
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-4 text-sm font-semibold text-lumen-text transition-colors hover:border-lumen-accent/45 hover:text-lumen-accent"
+          className="lumen-pill inline-flex h-12 items-center justify-center gap-2 rounded-[22px] px-5 text-sm font-semibold text-lumen-text transition-colors hover:border-lumen-accent/45 hover:text-lumen-accent"
         >
           Transactions
           <ArrowUpRight size={16} />
@@ -108,8 +108,9 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr]">
-        <section className="animate-fade-up stagger-2 relative overflow-hidden rounded-[30px] border border-white/[0.08] bg-[linear-gradient(135deg,#171A29_0%,#0D0F1A_58%,#151827_100%)] p-6 shadow-accent-glow sm:p-7">
-          <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-lumen-accent/20 blur-3xl" />
+        <section className="animate-fade-up stagger-2 lumen-glass relative overflow-hidden rounded-[34px] p-6 sm:p-7">
+          <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-lumen-accent/24 blur-3xl" />
+          <div className="pointer-events-none absolute -left-24 bottom-8 h-56 w-56 rounded-full bg-cyan-400/10 blur-3xl" />
           <div
             className="pointer-events-none absolute bottom-0 left-0 h-32 w-full"
             style={{ background: 'linear-gradient(90deg, rgb(var(--lumen-accent-rgb) / 0.13), rgba(16,185,129,0.08), transparent)' }}
@@ -117,7 +118,7 @@ export default async function DashboardPage() {
           <div className="relative flex min-h-[260px] flex-col justify-between">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-lumen-accent">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/12 text-lumen-accent shadow-inner">
                   <Landmark size={22} />
                 </div>
                 <div>
@@ -125,7 +126,7 @@ export default async function DashboardPage() {
                   <p className="text-xs text-lumen-muted">{balanceDate ? `Updated ${balanceDate}` : 'Latest imported balance'}</p>
                 </div>
               </div>
-              <span className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs font-semibold text-lumen-muted">
+              <span className="lumen-pill rounded-full px-3 py-1 text-xs font-semibold text-lumen-muted">
                 Revolut
               </span>
             </div>
@@ -147,7 +148,7 @@ export default async function DashboardPage() {
 
         <section className="animate-fade-up stagger-3 grid gap-3">
           {stats.map(({ label, value, Icon, tone, bg }) => (
-            <div key={label} className="lumen-panel flex items-center justify-between rounded-[24px] p-5">
+            <div key={label} className="lumen-panel flex items-center justify-between rounded-[28px] p-5">
               <div>
                 <p className="text-sm font-medium text-lumen-muted">{label}</p>
                 <p className={`mt-2 text-2xl font-semibold tabular-nums ${tone}`}>
@@ -163,7 +164,7 @@ export default async function DashboardPage() {
       </div>
 
       {recentTxs && recentTxs.length > 0 && (
-        <section className="animate-fade-up stagger-4 lumen-panel overflow-hidden rounded-[28px]">
+        <section className="animate-fade-up stagger-4 lumen-panel overflow-hidden rounded-[30px]">
           <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4 sm:px-6">
             <div>
               <p className="text-sm font-semibold text-lumen-text">Recent transactions</p>
@@ -179,7 +180,7 @@ export default async function DashboardPage() {
               const amt = Number(tx.amount)
               const positive = amt > 0
               return (
-                <div key={tx.id} className="flex items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-white/[0.035] sm:px-6">
+                <div key={tx.id} className="flex items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-white/[0.055] sm:px-6">
                   <div className="flex min-w-0 items-center gap-3">
                     <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl ${positive ? 'bg-lumen-success/10 text-lumen-success' : 'bg-white/[0.055] text-lumen-accent'}`}>
                       <ReceiptText size={19} />

@@ -35,7 +35,7 @@ export default function ThemeSwitcher() {
   }
 
   return (
-    <div className="rounded-[22px] border border-white/[0.08] bg-white/[0.04] p-2">
+    <div className="lumen-glass rounded-[24px] p-2">
       <div className="hidden px-1 pb-2 text-xs font-semibold text-lumen-muted sm:block">Theme</div>
       <div className="grid gap-1 sm:grid-cols-3">
         {THEMES.map((item) => {

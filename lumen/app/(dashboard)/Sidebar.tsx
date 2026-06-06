@@ -37,14 +37,18 @@ export default function Sidebar({ email, displayName }: { email: string; display
   }
 
   return (
-    <aside className="relative flex h-full w-[84px] flex-shrink-0 flex-col overflow-hidden border-r border-white/[0.07] bg-lumen-bg px-3 py-5 sm:w-[260px] sm:px-4">
+    <aside className="relative flex h-full w-[84px] flex-shrink-0 flex-col overflow-hidden border-r border-white/[0.08] bg-[#080d18]/80 px-3 py-5 backdrop-blur-2xl sm:w-[260px] sm:px-4">
       <div className="pointer-events-none absolute -left-28 top-24 h-64 w-64 rounded-full bg-lumen-accent/15 blur-3xl" />
       <div className="pointer-events-none absolute bottom-16 right-0 h-44 w-44 rounded-full bg-lumen-success/10 blur-3xl" />
 
-      <div className="relative z-10 flex justify-center px-2 pb-8 pt-1 sm:justify-start">
+      <Link
+        href="/"
+        aria-label="Go to landing page"
+        className="relative z-10 flex justify-center rounded-2xl px-2 pb-8 pt-1 transition-opacity hover:opacity-80 sm:justify-start"
+      >
         <LumenLogo size={31} iconOnly className="sm:hidden" />
         <LumenLogo size={31} className="hidden sm:block" />
-      </div>
+      </Link>
 
       <nav className="relative z-10 flex-1 space-y-1.5">
         {NAV.map(({ href, label, Icon }) => {
@@ -57,7 +61,7 @@ export default function Sidebar({ email, displayName }: { email: string; display
                 className={`relative flex h-12 items-center justify-center gap-3 overflow-hidden rounded-2xl px-3.5 text-sm font-semibold transition-colors sm:justify-start ${
                   active
                     ? 'bg-lumen-accent text-white shadow-accent-glow-sm'
-                    : 'text-lumen-muted hover:bg-white/[0.045] hover:text-lumen-text'
+                    : 'text-lumen-muted hover:bg-white/[0.07] hover:text-lumen-text'
                 }`}
               >
                 {active && (
@@ -81,7 +85,7 @@ export default function Sidebar({ email, displayName }: { email: string; display
         <ThemeSwitcher />
       </div>
 
-      <div className="relative z-10 mt-2 rounded-[24px] border border-white/[0.08] bg-white/[0.04] p-3">
+      <div className="relative z-10 mt-2 rounded-[24px] p-3 lumen-glass">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-lumen-accent text-sm font-bold text-white shadow-accent-glow-sm">
             {initials(displayName, email)}

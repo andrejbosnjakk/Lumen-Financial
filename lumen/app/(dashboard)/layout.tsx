@@ -27,7 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <div
           className="pointer-events-none absolute inset-0"
           style={{
-            background: 'radial-gradient(circle at 18% 0%, rgb(var(--lumen-accent-rgb) / 0.13), transparent 28%), linear-gradient(180deg, rgba(247,246,242,0.03), transparent 28%)',
+            background: 'radial-gradient(circle at 18% 0%, rgb(var(--lumen-accent-rgb) / 0.2), transparent 27%), radial-gradient(circle at 72% 24%, rgba(34, 120, 190, 0.11), transparent 32%), linear-gradient(135deg, rgba(255,255,255,0.035), transparent 30%)',
           }}
         />
         <div className="relative mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">

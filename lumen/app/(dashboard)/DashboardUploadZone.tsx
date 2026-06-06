@@ -82,8 +82,8 @@ export default function DashboardUploadZone() {
           : '#252836',
       }}
       transition={{ duration: 0.2 }}
-      className={`rounded-2xl border-2 border-dashed p-14 text-center transition-colors bg-lumen-surface select-none ${
-        clickable ? 'cursor-pointer hover:bg-lumen-surface-2' : ''
+      className={`lumen-glass rounded-[30px] border-2 border-dashed p-14 text-center transition-colors select-none ${
+        clickable ? 'cursor-pointer hover:bg-white/[0.075]' : ''
       }`}
     >
       <input ref={inputRef} type="file" accept=".csv" onChange={handleFileChange} className="hidden" />
