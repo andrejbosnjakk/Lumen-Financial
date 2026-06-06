@@ -7,6 +7,18 @@ import type { AgeComparison } from '@/lib/types'
 export type { AgeComparison }
 
 const VALID_AGE_GROUPS = ['18-24', '25-34', '35-44', '45-54', '55-64', '65-74', '75+']
+const CATEGORY_ALIASES: Record<string, string> = {
+  'Restaurants & Food': 'Dining',
+  Restaurant: 'Dining',
+  Restaurants: 'Dining',
+  Food: 'Dining',
+  Fitness: 'Health',
+  Healthcare: 'Health',
+  Medical: 'Health',
+  Utilities: 'Housing',
+  Rent: 'Housing',
+  Other: 'Other',
+}
 
 let benchmarkCache: Record<string, Record<string, number>> | null = null
 
@@ -16,6 +28,11 @@ function getBenchmarks(): Record<string, Record<string, number>> {
     benchmarkCache = JSON.parse(raw)
   }
   return benchmarkCache!
+}
+
+function normalizeCategory(category: string | null) {
+  const raw = (category || 'Other').trim()
+  return CATEGORY_ALIASES[raw] ?? raw
 }
 
 export async function GET(request: Request) {
@@ -44,7 +61,7 @@ export async function GET(request: Request) {
   // Compute user's monthly average per category (3-month window = divide by 3)
   const categoryTotals: Record<string, number> = {}
   for (const tx of txs) {
-    const cat = tx.category || 'Other'
+    const cat = normalizeCategory(tx.category)
     if (cat === 'Income' || cat === 'Transfers' || cat === 'Savings') continue
     categoryTotals[cat] = (categoryTotals[cat] ?? 0) + Math.abs(Number(tx.amount))
   }
@@ -52,17 +69,13 @@ export async function GET(request: Request) {
   const benchmarks = getBenchmarks()
   const ageBenchmark = benchmarks[ageGroup] ?? {}
 
-  // GBP/EUR is roughly 1.17, but since we're comparing ratios, convert benchmark to EUR
-  const GBP_TO_EUR = 1.17
-
   const comparisons: AgeComparison[] = []
 
   for (const [category, totalSpend] of Object.entries(categoryTotals)) {
     const userMonthly = totalSpend / 3
-    const benchmarkGBP = ageBenchmark[category]
-    if (!benchmarkGBP) continue  // no benchmark for this category
+    const benchmarkMonthly = ageBenchmark[category]
+    if (!benchmarkMonthly) continue  // no benchmark for this category
 
-    const benchmarkMonthly = benchmarkGBP * GBP_TO_EUR
     const ratio = userMonthly / benchmarkMonthly
 
     let direction: AgeComparison['direction'] = 'on-par'
