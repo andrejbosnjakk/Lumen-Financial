@@ -8,8 +8,8 @@
 
 ## P1 — Core UI (judges need to see working features)
 
-- [ ] **Dashboard home — summary cards** — wire up `GET /api/analytics` to show total income, total expenses, net savings, and a spending-by-category breakdown for the current month
-- [ ] **`/api/analytics` route** — implement aggregation queries: totals by type, group by category, monthly buckets, top merchants, detect recurring transactions
+- [x] **Dashboard home — summary cards** — queries DB directly (server component); shows current balance card + this month income/expenses/net; empty state links to transactions page
+- [x] **`/api/analytics` route** — implemented: totalIncome, totalExpenses, netSavings, byCategory, byMonth, topMerchants, recurring detection (2+ months); optional `?month=YYYY-MM` filter
 - [x] **Transactions page** — implemented: paginated table with search (debounced), category filter, date range, optimistic category correction, CSV upload button
 - [ ] **Analytics page** — spending by category (pie or bar chart with Recharts), monthly income vs expenses (line/bar), top merchants table
 - [ ] **Python microservice** — FastAPI service that accepts `[{description, amount, type}]` and returns categories; called as fallback for `Uncategorized` hits from the rule-based pass; deploy on VPS

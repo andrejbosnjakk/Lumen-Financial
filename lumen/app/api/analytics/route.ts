@@ -3,97 +3,91 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { searchParams } = new URL(request.url)
-  const month = searchParams.get('month') // e.g. "2025-05"
+  const month = searchParams.get('month') // optional "YYYY-MM"
 
-  // Build date range
-  let fromDate: string
-  let toDate: string
+  let query = supabase
+    .from('transactions')
+    .select('amount, category, completed_date, description, currency')
+    .eq('user_id', user.id)
+    .order('completed_date', { ascending: true })
+
   if (month) {
-    const [year, mon] = month.split('-').map(Number)
-    fromDate = new Date(year, mon - 1, 1).toISOString()
-    toDate = new Date(year, mon, 1).toISOString()
-  } else {
-    // All time
-    fromDate = '2000-01-01T00:00:00.000Z'
-    toDate = new Date(Date.now() + 86400000).toISOString()
+    query = query
+      .gte('completed_date', `${month}-01`)
+      .lt('completed_date', nextMonth(month))
   }
 
-  const { data: transactions, error } = await supabase
-    .from('transactions')
-    .select('amount, category, description, completed_date, currency')
-    .eq('user_id', user.id)
-    .gte('completed_date', fromDate)
-    .lt('completed_date', toDate)
+  const { data: txs, error } = await query
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  const txs = transactions ?? []
+  const rows = txs ?? []
 
-  // Totals
   let totalIncome = 0
   let totalExpenses = 0
-  for (const tx of txs) {
-    if (tx.amount > 0) totalIncome += tx.amount
-    else totalExpenses += Math.abs(tx.amount)
-  }
-  const netSavings = totalIncome - totalExpenses
-
-  // Spending by category (expenses only)
   const byCategory: Record<string, number> = {}
-  for (const tx of txs) {
-    if (tx.amount < 0) {
-      byCategory[tx.category] = (byCategory[tx.category] ?? 0) + Math.abs(tx.amount)
+  const monthMap: Record<string, { income: number; expenses: number }> = {}
+  const merchantMap: Record<string, { total: number; count: number }> = {}
+  const descMonths: Record<string, Set<string>> = {}
+
+  for (const tx of rows) {
+    const amount = Number(tx.amount)
+    const monthKey = String(tx.completed_date).substring(0, 7)
+
+    if (amount > 0) {
+      totalIncome += amount
+    } else {
+      totalExpenses += Math.abs(amount)
+      byCategory[tx.category] = (byCategory[tx.category] ?? 0) + Math.abs(amount)
+      if (!merchantMap[tx.description]) merchantMap[tx.description] = { total: 0, count: 0 }
+      merchantMap[tx.description].total += Math.abs(amount)
+      merchantMap[tx.description].count++
     }
+
+    if (!monthMap[monthKey]) monthMap[monthKey] = { income: 0, expenses: 0 }
+    if (amount > 0) monthMap[monthKey].income += amount
+    else monthMap[monthKey].expenses += Math.abs(amount)
+
+    if (!descMonths[tx.description]) descMonths[tx.description] = new Set()
+    descMonths[tx.description].add(monthKey)
   }
 
-  // Income vs expenses by month (last 6 months)
-  const monthMap: Record<string, { income: number; expenses: number }> = {}
-  for (const tx of txs) {
-    const m = tx.completed_date.slice(0, 7) // "YYYY-MM"
-    if (!monthMap[m]) monthMap[m] = { income: 0, expenses: 0 }
-    if (tx.amount > 0) monthMap[m].income += tx.amount
-    else monthMap[m].expenses += Math.abs(tx.amount)
-  }
   const byMonth = Object.entries(monthMap)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([month, vals]) => ({ month, ...vals }))
+    .map(([month, v]) => ({ month, ...v }))
 
-  // Top merchants (expenses, by total spent)
-  const merchantMap: Record<string, { total: number; count: number }> = {}
-  for (const tx of txs) {
-    if (tx.amount < 0) {
-      const key = tx.description.trim()
-      if (!merchantMap[key]) merchantMap[key] = { total: 0, count: 0 }
-      merchantMap[key].total += Math.abs(tx.amount)
-      merchantMap[key].count += 1
-    }
-  }
   const topMerchants = Object.entries(merchantMap)
-    .map(([description, vals]) => ({ description, ...vals }))
+    .map(([description, v]) => ({ description, ...v }))
     .sort((a, b) => b.total - a.total)
     .slice(0, 10)
 
-  // Recurring: transactions appearing 2+ times with same description
-  const recurringMap: Record<string, number> = {}
-  for (const tx of txs) {
-    recurringMap[tx.description] = (recurringMap[tx.description] ?? 0) + 1
-  }
-  const recurringDescriptions = new Set(
-    Object.entries(recurringMap).filter(([, c]) => c >= 2).map(([d]) => d)
+  const recurringDescs = new Set(
+    Object.entries(descMonths)
+      .filter(([, months]) => months.size >= 2)
+      .map(([desc]) => desc)
   )
-  const recurring = txs.filter((tx) => recurringDescriptions.has(tx.description))
+  const recurring = rows.filter((tx) => recurringDescs.has(tx.description))
 
   return NextResponse.json({
-    totalIncome: Math.round(totalIncome * 100) / 100,
-    totalExpenses: Math.round(totalExpenses * 100) / 100,
-    netSavings: Math.round(netSavings * 100) / 100,
+    totalIncome,
+    totalExpenses,
+    netSavings: totalIncome - totalExpenses,
     byCategory,
     byMonth,
     topMerchants,
     recurring,
   })
+}
+
+function nextMonth(yearMonth: string) {
+  const [y, m] = yearMonth.split('-').map(Number)
+  const d = new Date(y, m, 1) // month is 0-indexed, so m = next month
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`
 }
