@@ -20,17 +20,27 @@
 }
 
 :root[data-theme='green'] {
-  --lumen-accent:       #00A669;
-  --lumen-accent-rgb:   0 166 105;
-  --lumen-accent-dim:   #008556;
+  --lumen-accent:         #00A669;
+  --lumen-accent-rgb:     0 166 105;
+  --lumen-accent-dim:     #008556;
   --lumen-accent-dim-rgb: 0 133 86;
+  /* Surfaces shift green-dark */
+  --lumen-bg:             #080f0d;
+  --lumen-surface:        #0c1610;
+  --lumen-surface-2:      #111e15;
+  --lumen-border:         #192b1f;
 }
 
 :root[data-theme='amber'] {
-  --lumen-accent:       #FFB020;
-  --lumen-accent-rgb:   255 176 32;
-  --lumen-accent-dim:   #D88900;
+  --lumen-accent:         #FFB020;
+  --lumen-accent-rgb:     255 176 32;
+  --lumen-accent-dim:     #D88900;
   --lumen-accent-dim-rgb: 216 137 0;
+  /* Surfaces shift warm-dark */
+  --lumen-bg:             #0e0c07;
+  --lumen-surface:        #161208;
+  --lumen-surface-2:      #1c170a;
+  --lumen-border:         #2b2210;
 }
 
 * { box-sizing: border-box; }

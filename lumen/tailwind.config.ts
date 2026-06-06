@@ -10,10 +10,10 @@ const config: Config = {
     extend: {
       colors: {
         lumen: {
-          bg:           '#090d17',
-          surface:      '#0e1520',
-          'surface-2':  '#131c28',
-          border:       '#1c2535',
+          bg:           'var(--lumen-bg)',
+          surface:      'var(--lumen-surface)',
+          'surface-2':  'var(--lumen-surface-2)',
+          border:       'var(--lumen-border)',
           accent:       'rgb(var(--lumen-accent-rgb) / <alpha-value>)',
           'accent-dim': 'rgb(var(--lumen-accent-dim-rgb) / <alpha-value>)',
           'accent-glow':'rgb(var(--lumen-accent-rgb) / 0.15)',
