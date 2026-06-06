@@ -1,6 +1,6 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowRight, BarChart2, FileUp, LayoutDashboard, ShieldCheck, Sparkles, Zap } from 'lucide-react'
-import { LumenLogo, LumenStar } from '@/components/Logo'
 import { createClient } from '@/lib/supabase/server'
 
 const features = [
@@ -50,7 +50,7 @@ export default async function LandingPage() {
     <div className="min-h-screen bg-lumen-bg text-lumen-text">
       {/* Nav */}
       <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 sm:px-8">
-        <LumenLogo size={30} />
+        <Image src="/brand/lumen-logo-pixel-faithful.png" alt="Lumen" height={34} width={136} style={{ objectFit: 'contain', objectPosition: 'left' }} />
         <div className="flex items-center gap-3">
           {user ? (
             <Link
@@ -92,7 +92,9 @@ export default async function LandingPage() {
           </div>
 
           <div className="mb-6 flex justify-center">
-            <LumenStar size={72} />
+            <div style={{ width: 80, height: 80, overflow: 'hidden', flexShrink: 0 }}>
+              <Image src="/brand/lumen-logo-pixel-faithful.png" alt="" height={80} width={400} style={{ height: 80, width: 'auto', maxWidth: 'none' }} />
+            </div>
           </div>
 
           <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight text-lumen-text sm:text-5xl lg:text-6xl">
@@ -186,7 +188,9 @@ export default async function LandingPage() {
             <div className="pointer-events-none absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-lumen-success/10 blur-3xl" />
 
             <div className="relative">
-              <LumenStar size={48} className="mx-auto mb-6" />
+              <div className="mx-auto mb-6" style={{ width: 56, height: 56, overflow: 'hidden' }}>
+                <Image src="/brand/lumen-logo-pixel-faithful.png" alt="" height={56} width={280} style={{ height: 56, width: 'auto', maxWidth: 'none' }} />
+              </div>
               <h2 className="text-2xl font-semibold text-lumen-text sm:text-3xl">
                 Ready to illuminate your finances?
               </h2>
@@ -208,7 +212,7 @@ export default async function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-white/[0.06] px-5 py-8 sm:px-8">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <LumenLogo size={22} />
+          <Image src="/brand/lumen-logo-pixel-faithful.png" alt="Lumen" height={26} width={104} style={{ objectFit: 'contain', objectPosition: 'left' }} />
           <p className="text-xs text-lumen-muted/60">
             HackDelft 2026 · Revolut AI Challenge
           </p>
