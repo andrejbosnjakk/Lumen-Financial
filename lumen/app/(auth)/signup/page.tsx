@@ -27,7 +27,7 @@ export default function SignupPage() {
       return
     }
     if (data.session) {
-      router.push('/')
+      router.push('/dashboard')
       router.refresh()
     } else {
       router.push('/login?message=Check+your+email+to+confirm+your+account')

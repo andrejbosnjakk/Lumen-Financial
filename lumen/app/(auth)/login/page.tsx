@@ -28,7 +28,7 @@ function LoginForm() {
       setLoading(false)
       return
     }
-    router.push('/')
+    router.push('/dashboard')
     router.refresh()
   }
 

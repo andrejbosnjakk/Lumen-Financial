@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowUpRight, Landmark, PiggyBank, ReceiptText, TrendingDown, TrendingUp } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
-import DashboardUploadZone from './DashboardUploadZone'
+import DashboardUploadZone from '../DashboardUploadZone'
 
 function fmt(amount: number, currency = 'EUR') {
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency }).format(amount)

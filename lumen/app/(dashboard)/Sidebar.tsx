@@ -9,7 +9,7 @@ import { LumenLogo } from '@/components/Logo'
 import ThemeSwitcher from '@/components/ThemeSwitcher'
 
 const NAV = [
-  { href: '/', label: 'Overview', Icon: LayoutDashboard },
+  { href: '/dashboard', label: 'Overview', Icon: LayoutDashboard },
   { href: '/transactions', label: 'Transactions', Icon: ArrowLeftRight },
   { href: '/analytics', label: 'Analytics', Icon: BarChart2 },
   { href: '/account', label: 'Account', Icon: User },

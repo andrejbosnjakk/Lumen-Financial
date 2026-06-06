@@ -9,7 +9,7 @@
 ## P1 — Core UI (judges need to see working features)
 
 - [x] **Dashboard home — summary cards** — queries DB directly (server component); shows current balance card + this month income/expenses/net; empty state links to transactions page
-- [ ] **Landing page** — simple public-facing entry page with product pitch, key features, and a CTA to sign up or upload a CSV
+- [x] **Landing page** — public `/` page with hero, 6-feature grid, 3-step how-it-works, and CTA; middleware updated so `/` is public and logged-in users redirect to `/dashboard`; dashboard moved from `/` to `/dashboard`
 - [x] **`/api/analytics` route** — implemented: totalIncome, totalExpenses, netSavings, byCategory, byMonth, topMerchants, recurring detection (2+ months); optional `?month=YYYY-MM` filter
 - [x] **Transactions page** — implemented: paginated table with search (debounced), category filter, date range, optimistic category correction, CSV upload button
 - [x] **Analytics page** — donut (spending by category), bar chart (monthly income vs expenses), net savings line chart, top merchants table; period selector (Week / Month / 3 Months / Year / All time); analytics cache (`lib/analyticsCache.ts`) with 5-min TTL keyed per date range, cleared on CSV upload

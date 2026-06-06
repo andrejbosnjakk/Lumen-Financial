@@ -29,13 +29,14 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
   const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/signup')
+  const isLanding = pathname === '/'
 
-  if (!user && !isAuthRoute) {
+  if (!user && !isAuthRoute && !isLanding) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
   if (user && isAuthRoute) {
-    return NextResponse.redirect(new URL('/', request.url))
+    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
   return supabaseResponse
