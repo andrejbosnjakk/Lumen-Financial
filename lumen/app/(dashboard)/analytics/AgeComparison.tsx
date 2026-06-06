@@ -15,8 +15,8 @@ export default function AgeComparison() {
   const [ageGroup, setAgeGroup] = useState<string>('')
   const [comparisons, setComparisons] = useState<AgeComparison[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  // Restore saved age group on mount
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (saved && AGE_GROUPS.includes(saved)) setAgeGroup(saved)
@@ -24,13 +24,40 @@ export default function AgeComparison() {
 
   useEffect(() => {
     if (!ageGroup) return
+    const controller = new AbortController()
+    const timeout = window.setTimeout(() => controller.abort(), 10000)
+
     localStorage.setItem(STORAGE_KEY, ageGroup)
     setLoading(true)
-    fetch(`/api/insights/age?ageGroup=${encodeURIComponent(ageGroup)}`)
-      .then(r => r.json())
-      .then(d => setComparisons(d.comparisons ?? []))
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    setError(null)
+
+    fetch(`/api/insights/age?ageGroup=${encodeURIComponent(ageGroup)}`, {
+      credentials: 'same-origin',
+      cache: 'no-store',
+      signal: controller.signal,
+    })
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`Peer comparison failed (${r.status})`)
+        return r.json()
+      })
+      .then((d) => setComparisons(d.comparisons ?? []))
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === 'AbortError') {
+          setError('Peer comparison timed out.')
+        } else {
+          setError(err instanceof Error ? err.message : 'Peer comparison failed.')
+        }
+        setComparisons([])
+      })
+      .finally(() => {
+        window.clearTimeout(timeout)
+        setLoading(false)
+      })
+
+    return () => {
+      window.clearTimeout(timeout)
+      controller.abort()
+    }
   }, [ageGroup])
 
   return (
@@ -42,17 +69,17 @@ export default function AgeComparison() {
           </div>
           <div>
             <h2 className="text-sm font-semibold text-lumen-text">Peer comparison</h2>
-            <p className="mt-0.5 text-xs text-lumen-muted">How your spending compares to your age group. Based on 1M transactions.</p>
+            <p className="mt-0.5 text-xs text-lumen-muted">Compares your category spend to age-group benchmarks.</p>
           </div>
         </div>
 
         <select
           value={ageGroup}
-          onChange={e => setAgeGroup(e.target.value)}
+          onChange={(e) => setAgeGroup(e.target.value)}
           className="rounded-xl border border-white/10 bg-lumen-surface-2 px-3 py-2 text-xs font-semibold text-lumen-text focus:outline-none focus:ring-2 focus:ring-lumen-accent/40"
         >
           <option value="">Select your age group</option>
-          {AGE_GROUPS.map(g => (
+          {AGE_GROUPS.map((g) => (
             <option key={g} value={g}>{g} years</option>
           ))}
         </select>
@@ -60,15 +87,19 @@ export default function AgeComparison() {
 
       {!ageGroup ? (
         <div className="px-6 py-10 text-center">
-          <p className="text-sm text-lumen-muted">Choose your age group to see how your spending compares to your peers.</p>
+          <p className="text-sm text-lumen-muted">Choose an age group to compare spending by category.</p>
         </div>
       ) : loading ? (
         <div className="flex items-center justify-center py-10">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-lumen-accent/30 border-t-lumen-accent" />
         </div>
+      ) : error ? (
+        <div className="px-6 py-10 text-center">
+          <p className="text-sm text-lumen-danger">{error}</p>
+        </div>
       ) : comparisons.length === 0 ? (
         <div className="px-6 py-10 text-center">
-          <p className="text-sm text-lumen-muted">Not enough data for comparison yet. Upload more transactions.</p>
+          <p className="text-sm text-lumen-muted">Not enough matching category data yet.</p>
         </div>
       ) : (
         <div className="divide-y divide-white/[0.07]">
@@ -82,7 +113,7 @@ export default function AgeComparison() {
                 <div className="mb-2 flex items-center justify-between gap-4">
                   <span className="text-sm font-semibold text-lumen-text">{c.category}</span>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-xs text-lumen-muted">You: {fmt(c.userMonthly)}/mo · Avg: {fmt(c.benchmarkMonthly)}/mo</span>
+                    <span className="text-xs text-lumen-muted">You: {fmt(c.userMonthly)}/mo - Avg: {fmt(c.benchmarkMonthly)}/mo</span>
                     <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${isOver ? 'bg-lumen-danger/10 text-lumen-danger' : isUnder ? 'bg-lumen-success/10 text-lumen-success' : 'bg-lumen-accent/10 text-lumen-accent'}`}>
                       {pct > 0 ? '+' : ''}{pct}%
                     </span>
