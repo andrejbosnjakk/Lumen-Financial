@@ -26,7 +26,8 @@ export default async function DashboardPage() {
     .eq('id', user!.id)
     .maybeSingle()
 
-  const name = profile?.first_name || user?.email?.split('@')[0] || 'there'
+  const metadataFirstName = user?.user_metadata?.first_name as string | undefined
+  const name = profile?.first_name || metadataFirstName || user?.email?.split('@')[0] || 'there'
 
   const { count } = await supabase
     .from('transactions')
@@ -39,10 +40,10 @@ export default async function DashboardPage() {
         <div className="mb-8 max-w-2xl">
           <p className="text-sm font-medium text-lumen-accent">{greeting}, {name}</p>
           <h1 className="mt-2 text-3xl font-semibold text-lumen-text sm:text-4xl">
-            Illuminate your Revolut export.
+            Import a Revolut CSV.
           </h1>
           <p className="mt-3 text-sm leading-6 text-lumen-muted">
-            Drop in a CSV to unlock balances, monthly movement, and a categorized transaction stream.
+            Upload a statement to create transactions, balances, and category summaries.
           </p>
         </div>
         <DashboardUploadZone />

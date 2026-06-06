@@ -185,9 +185,9 @@ export default function AnalyticsPage() {
       <div className="animate-fade-up flex flex-col justify-between gap-4 xl:flex-row xl:items-end">
         <div>
           <p className="text-sm font-medium text-lumen-accent">Analytics</p>
-          <h1 className="mt-2 text-3xl font-semibold text-lumen-text sm:text-4xl">Patterns worth seeing.</h1>
+          <h1 className="mt-2 text-3xl font-semibold text-lumen-text sm:text-4xl">Analytics</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-lumen-muted">
-            Compare cash flow, spending categories, savings momentum, and the merchants shaping your month.
+            Review cash flow, spending categories, savings, and top merchants.
           </p>
         </div>
 
@@ -273,7 +273,7 @@ export default function AnalyticsPage() {
             {categoryData.length > 0 && (
               <section className="lumen-panel rounded-[28px] p-5 sm:p-6">
                 <h2 className="text-sm font-semibold text-lumen-text">Spending by category</h2>
-                <p className="mt-1 text-xs text-lumen-muted">Where the outflow clusters.</p>
+                <p className="mt-1 text-xs text-lumen-muted">Grouped transaction spend.</p>
                 <ResponsiveContainer width="100%" height={265}>
                   <PieChart>
                     <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={62} outerRadius={92} paddingAngle={3}>
@@ -304,7 +304,7 @@ export default function AnalyticsPage() {
             {savingsData.length > 0 && (
               <section className="lumen-panel rounded-[28px] p-5 sm:p-6">
                 <h2 className="text-sm font-semibold text-lumen-text">Net savings trend</h2>
-                <p className="mt-1 text-xs text-lumen-muted">A quick read on whether the period is compounding or leaking.</p>
+                <p className="mt-1 text-xs text-lumen-muted">Income minus expenses over time.</p>
                 <ResponsiveContainer width="100%" height={320}>
                   <LineChart data={savingsData}>
                     <CartesianGrid strokeDasharray="3 3" stroke={CHART_THEME.grid} vertical={false} />
@@ -323,7 +323,7 @@ export default function AnalyticsPage() {
               <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4 sm:px-6">
                 <div>
                   <h2 className="text-sm font-semibold text-lumen-text">Top merchants</h2>
-                  <p className="mt-1 text-xs text-lumen-muted">The places taking the biggest share.</p>
+                  <p className="mt-1 text-xs text-lumen-muted">Largest merchants in the selected period.</p>
                 </div>
               </div>
               <div className="divide-y divide-white/[0.07]">

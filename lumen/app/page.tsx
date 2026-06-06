@@ -1,45 +1,45 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, BarChart2, FileUp, LayoutDashboard, ShieldCheck, Sparkles, Zap } from 'lucide-react'
+import { ArrowRight, BarChart2, FileUp, LayoutDashboard, ShieldCheck, Tags, CalendarRange } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 
 const features = [
   {
     Icon: FileUp,
-    title: 'One-click CSV import',
-    body: 'Export from Revolut, drop it in Lumen. Duplicates are detected automatically — import as often as you like.',
+    title: 'CSV import',
+    body: 'Upload a standard Revolut CSV export. Duplicate transactions are skipped automatically.',
   },
   {
-    Icon: Sparkles,
-    title: 'Instant categorization',
-    body: 'Rule-based categorization fires first (Albert Heijn → Groceries, OVpay → Transport). Every label is editable.',
+    Icon: Tags,
+    title: 'Editable categories',
+    body: 'Transactions are categorized on import, and every label can be corrected later.',
   },
   {
     Icon: BarChart2,
-    title: 'Live analytics',
-    body: 'Spending by category, monthly income vs expenses, net savings trend, and top merchants — all in one dashboard.',
+    title: 'Analytics',
+    body: 'Review income, expenses, categories, savings, and top merchants in one place.',
   },
   {
-    Icon: Zap,
-    title: 'Period-aware charts',
-    body: 'Switch between week, month, quarter, year, or all time. Charts adapt granularity automatically.',
+    Icon: CalendarRange,
+    title: 'Period filters',
+    body: 'Switch between week, month, quarter, year, and all-time views.',
   },
   {
     Icon: ShieldCheck,
-    title: 'Private by design',
-    body: 'Row-level security means your transactions are only ever visible to you — nobody else, not even us.',
+    title: 'Private account data',
+    body: 'Each account can only read and update its own transaction and profile records.',
   },
   {
     Icon: BarChart2,
     title: 'PDF export',
-    body: 'Generate a polished financial report with one click: summary totals, category breakdown, top merchants.',
+    body: 'Download a report with summary totals, category breakdowns, and top merchants.',
   },
 ]
 
 const steps = [
-  { number: '01', title: 'Export from Revolut', body: 'Go to your Revolut app → Statements → Export account statement as CSV.' },
-  { number: '02', title: 'Upload to Lumen', body: 'Drop the file on the dashboard. Transactions are parsed, deduplicated, and categorized in seconds.' },
-  { number: '03', title: 'Explore your insights', body: 'Browse analytics, correct any labels, adjust filters, and export a PDF report for your records.' },
+  { number: '01', title: 'Export from Revolut', body: 'Create a CSV account statement in the Revolut app.' },
+  { number: '02', title: 'Upload the file', body: 'Drop the CSV on the dashboard. Rows are parsed, deduplicated, and categorized.' },
+  { number: '03', title: 'Review the data', body: 'Use filters, charts, and category edits to check the imported transactions.' },
 ]
 
 export default async function LandingPage() {
@@ -48,7 +48,6 @@ export default async function LandingPage() {
 
   return (
     <div className="min-h-screen bg-lumen-bg text-lumen-text">
-      {/* Nav */}
       <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 sm:px-8">
         <Image src="/brand/lumen-logo-pixel-faithful.png" alt="Lumen" height={34} width={136} style={{ objectFit: 'contain', objectPosition: 'left' }} />
         <div className="flex items-center gap-3">
@@ -62,10 +61,7 @@ export default async function LandingPage() {
             </Link>
           ) : (
             <>
-              <Link
-                href="/login"
-                className="rounded-2xl px-4 py-2 text-sm font-semibold text-lumen-muted transition-colors hover:text-lumen-text"
-              >
+              <Link href="/login" className="rounded-2xl px-4 py-2 text-sm font-semibold text-lumen-muted transition-colors hover:text-lumen-text">
                 Sign in
               </Link>
               <Link
@@ -80,15 +76,14 @@ export default async function LandingPage() {
         </div>
       </header>
 
-      {/* Hero */}
       <section className="relative overflow-hidden px-5 pb-20 pt-16 sm:px-8 sm:pb-28 sm:pt-24">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(108,99,255,0.22),transparent)]" />
-        <div className="pointer-events-none absolute left-1/2 top-0 h-px w-[600px] -translate-x-1/2 bg-gradient-to-r from-transparent via-lumen-accent/40 to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgb(var(--lumen-accent-rgb)/0.18),transparent)]" />
+        <div className="pointer-events-none absolute left-1/2 top-0 h-px w-[600px] -translate-x-1/2 bg-gradient-to-r from-transparent via-lumen-accent/35 to-transparent" />
 
         <div className="relative mx-auto max-w-4xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.035] px-4 py-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-lumen-accent" />
-            <span className="text-xs font-semibold text-lumen-muted">Built for HackDelft 2026 · Revolut AI Challenge</span>
+            <span className="text-xs font-semibold text-lumen-muted">HackDelft 2026 - Revolut track</span>
           </div>
 
           <div className="mb-6 flex justify-center">
@@ -98,15 +93,11 @@ export default async function LandingPage() {
           </div>
 
           <h1 className="text-4xl font-semibold leading-[1.08] tracking-tight text-lumen-text sm:text-5xl lg:text-6xl">
-            Financial clarity,<br />
-            <span className="bg-gradient-to-r from-lumen-accent via-purple-400 to-lumen-accent bg-clip-text text-transparent">
-              illuminated.
-            </span>
+            Revolut CSV dashboard
           </h1>
 
           <p className="mx-auto mt-6 max-w-xl text-base leading-7 text-lumen-muted sm:text-lg">
-            Upload your Revolut CSV export and get instant categorization, live analytics,
-            and clean financial insights — no spreadsheets required.
+            Import transactions, review categories, and track account activity from a clean dashboard.
           </p>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
@@ -114,37 +105,33 @@ export default async function LandingPage() {
               href="/signup"
               className="flex h-12 items-center gap-2 rounded-2xl bg-lumen-accent px-7 text-sm font-semibold text-white shadow-accent-glow transition-colors hover:bg-lumen-accent-dim"
             >
-              Get started free
+              Create account
               <ArrowRight size={15} />
             </Link>
             <Link
               href="/login"
-              className="flex h-12 items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-7 text-sm font-semibold text-lumen-text transition-colors hover:border-lumen-accent/40 hover:text-lumen-accent"
+              className="flex h-12 items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-7 text-sm font-semibold text-lumen-text transition-colors hover:border-lumen-accent/40 hover:text-lumen-accent"
             >
               Sign in
             </Link>
           </div>
 
           <p className="mt-5 text-xs text-lumen-muted/60">
-            No credit card required · Works with standard Revolut CSV exports
+            Works with standard Revolut CSV exports
           </p>
         </div>
       </section>
 
-      {/* Features */}
       <section className="px-5 py-16 sm:px-8 sm:py-20">
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 text-center">
             <p className="text-sm font-semibold uppercase tracking-widest text-lumen-accent">Features</p>
-            <h2 className="mt-3 text-2xl font-semibold text-lumen-text sm:text-3xl">Everything you need to understand your money</h2>
+            <h2 className="mt-3 text-2xl font-semibold text-lumen-text sm:text-3xl">Core workflow</h2>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {features.map(({ Icon, title, body }) => (
-              <div
-                key={title}
-                className="rounded-[24px] border border-white/[0.08] bg-lumen-surface p-6 transition-colors hover:border-white/[0.14] hover:bg-lumen-surface-2"
-              >
+              <div key={title} className="lumen-panel rounded-[22px] p-6 transition-colors hover:border-white/[0.14]">
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-lumen-accent/10 text-lumen-accent">
                   <Icon size={20} />
                 </div>
@@ -156,12 +143,11 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* How it works */}
       <section className="px-5 py-16 sm:px-8 sm:py-20">
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-lumen-accent">How it works</p>
-            <h2 className="mt-3 text-2xl font-semibold text-lumen-text sm:text-3xl">From CSV to insights in three steps</h2>
+            <p className="text-sm font-semibold uppercase tracking-widest text-lumen-accent">Process</p>
+            <h2 className="mt-3 text-2xl font-semibold text-lumen-text sm:text-3xl">From export to review</h2>
           </div>
 
           <div className="relative grid gap-8 sm:grid-cols-3">
@@ -180,28 +166,27 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="px-5 py-16 sm:px-8 sm:py-24">
         <div className="mx-auto max-w-2xl">
-          <div className="relative overflow-hidden rounded-[32px] border border-white/[0.08] bg-lumen-surface p-10 text-center sm:p-14">
-            <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-lumen-accent/15 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-lumen-success/10 blur-3xl" />
+          <div className="lumen-panel relative overflow-hidden rounded-[28px] p-10 text-center sm:p-14">
+            <div className="pointer-events-none absolute -left-20 -top-20 h-64 w-64 rounded-full bg-lumen-accent/12 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-lumen-success/8 blur-3xl" />
 
             <div className="relative">
               <div className="mx-auto mb-6" style={{ width: 56, height: 56, overflow: 'hidden' }}>
                 <Image src="/brand/lumen-logo-pixel-faithful.png" alt="" height={56} width={280} style={{ height: 56, width: 'auto', maxWidth: 'none' }} />
               </div>
               <h2 className="text-2xl font-semibold text-lumen-text sm:text-3xl">
-                Ready to illuminate your finances?
+                Start with a CSV upload
               </h2>
               <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-lumen-muted">
-                Create a free account, upload your Revolut statement, and get a complete picture of your spending in under a minute.
+                Create an account, upload a Revolut statement, and review the imported transactions.
               </p>
               <Link
                 href="/signup"
                 className="mt-8 inline-flex h-12 items-center gap-2 rounded-2xl bg-lumen-accent px-8 text-sm font-semibold text-white shadow-accent-glow transition-colors hover:bg-lumen-accent-dim"
               >
-                Get started free
+                Create account
                 <ArrowRight size={15} />
               </Link>
             </div>
@@ -209,12 +194,11 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-white/[0.06] px-5 py-8 sm:px-8">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <Image src="/brand/lumen-logo-pixel-faithful.png" alt="Lumen" height={26} width={104} style={{ objectFit: 'contain', objectPosition: 'left' }} />
           <p className="text-xs text-lumen-muted/60">
-            HackDelft 2026 · Revolut AI Challenge
+            HackDelft 2026 - Revolut track
           </p>
         </div>
       </footer>

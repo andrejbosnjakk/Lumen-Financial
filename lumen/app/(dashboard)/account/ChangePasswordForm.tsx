@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { KeyRound } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import PasswordStrengthMeter, { getPasswordStrength } from '@/components/PasswordStrengthMeter'
 
 export default function ChangePasswordForm() {
   const [password, setPassword] = useState('')
@@ -14,6 +15,10 @@ export default function ChangePasswordForm() {
     e.preventDefault()
     if (password !== confirm) {
       setMessage({ type: 'error', text: 'Passwords do not match.' })
+      return
+    }
+    if (getPasswordStrength(password).score < 3) {
+      setMessage({ type: 'error', text: 'Use a stronger password before saving.' })
       return
     }
     setLoading(true)
@@ -38,13 +43,14 @@ export default function ChangePasswordForm() {
         <label className="mb-2 block text-sm font-medium text-lumen-text">New password</label>
         <input
           type="password"
-          placeholder="At least 6 characters"
+          placeholder="At least 8 characters"
           required
-          minLength={6}
+          minLength={8}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="lumen-input px-4 py-3 text-sm placeholder:text-lumen-muted/55"
         />
+        <PasswordStrengthMeter password={password} />
       </div>
       <div>
         <label className="mb-2 block text-sm font-medium text-lumen-text">Confirm password</label>
@@ -52,7 +58,7 @@ export default function ChangePasswordForm() {
           type="password"
           placeholder="Repeat new password"
           required
-          minLength={6}
+          minLength={8}
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
           className="lumen-input px-4 py-3 text-sm placeholder:text-lumen-muted/55"

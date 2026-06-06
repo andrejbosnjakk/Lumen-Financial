@@ -4,7 +4,7 @@ import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, ShieldCheck, Sparkles } from 'lucide-react'
+import { ArrowRight, BarChart2, ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { LumenLogo, LumenStar } from '@/components/Logo'
 
@@ -48,7 +48,7 @@ function LoginForm() {
           <p className="text-sm font-medium text-lumen-accent">Welcome back</p>
           <h1 className="mt-2 text-3xl font-semibold text-lumen-text">Sign in to Lumen</h1>
           <p className="mt-3 text-sm leading-6 text-lumen-muted">
-            Continue your Revolut analysis with clean summaries, spend patterns, and category corrections.
+            Continue with your transactions, categories, and reports.
           </p>
         </div>
 
@@ -132,10 +132,10 @@ function AuthVisual() {
             <LumenStar size={78} />
           </div>
           <h2 className="text-5xl font-semibold leading-[1.04] text-lumen-text">
-            Financial clarity, illuminated.
+            Revolut CSV dashboard
           </h2>
           <p className="mt-6 max-w-lg text-base leading-7 text-lumen-muted">
-            Upload Revolut exports, clean the noise, and turn everyday transactions into a calm financial command center.
+            Import transactions, review categories, and keep account activity organized.
           </p>
         </div>
 
@@ -146,9 +146,9 @@ function AuthVisual() {
             <p className="mt-1 text-sm leading-5 text-lumen-muted">Your analysis stays scoped to your account.</p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-4">
-            <Sparkles className="mb-5 text-lumen-accent" size={22} />
-            <p className="text-sm font-semibold text-lumen-text">Built for demos</p>
-            <p className="mt-1 text-sm leading-5 text-lumen-muted">Fast insights, clean corrections, no spreadsheet fog.</p>
+            <BarChart2 className="mb-5 text-lumen-accent" size={22} />
+            <p className="text-sm font-semibold text-lumen-text">Reports included</p>
+            <p className="mt-1 text-sm leading-5 text-lumen-muted">Review charts and export a PDF when needed.</p>
           </div>
         </div>
       </div>

@@ -147,7 +147,7 @@ export default function PortfolioView({ accountType }: { accountType: 'live' | '
               accountType === 'live' ? 'bg-lumen-success/10 text-lumen-success' : 'bg-lumen-warning/10 text-lumen-warning'
             }`}>
               <span className={`h-1.5 w-1.5 rounded-full ${accountType === 'live' ? 'bg-lumen-success' : 'bg-lumen-warning'}`} />
-              Trading 212 · {accountType === 'live' ? 'Live' : 'Demo'}
+              Trading 212 - {accountType === 'live' ? 'Live' : 'Demo'}
             </span>
           </div>
         </div>

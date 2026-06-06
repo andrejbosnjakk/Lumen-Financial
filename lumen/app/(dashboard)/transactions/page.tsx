@@ -153,7 +153,7 @@ export default function TransactionsPage() {
           <div className="p-12 text-center text-[13px] text-lumen-muted">
             {hasActiveFilters
               ? 'No transactions match your filters'
-              : 'No transactions yet — upload a CSV to get started'}
+              : 'No transactions yet - upload a CSV to get started'}
           </div>
         ) : (
           <table className="w-full">

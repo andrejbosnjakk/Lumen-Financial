@@ -10,8 +10,8 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  title: 'Lumen - Financial clarity, illuminated.',
-  description: 'AI-powered financial intelligence for your Revolut data',
+  title: 'Lumen - Revolut CSV dashboard',
+  description: 'Import, categorize, and review Revolut CSV transactions.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

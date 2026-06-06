@@ -7,9 +7,14 @@ import { motion } from 'framer-motion'
 import { ArrowRight, BadgeCheck, LineChart, UploadCloud } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { LumenLogo, LumenStar } from '@/components/Logo'
+import PasswordStrengthMeter, { getPasswordStrength } from '@/components/PasswordStrengthMeter'
 
 export default function SignupPage() {
   const router = useRouter()
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [dob, setDob] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -18,13 +23,36 @@ export default function SignupPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    if (getPasswordStrength(password).score < 3) {
+      setError('Use a stronger password before creating the account.')
+      return
+    }
     setLoading(true)
     const supabase = createClient()
-    const { data, error } = await supabase.auth.signUp({ email, password })
+    const profile = {
+      first_name: firstName.trim() || null,
+      last_name: lastName.trim() || null,
+      phone: phone.trim() || null,
+      date_of_birth: dob || null,
+    }
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: profile,
+      },
+    })
     if (error) {
       setError(error.message)
       setLoading(false)
       return
+    }
+    if (data.session && data.user) {
+      await supabase.from('profiles').upsert({
+        id: data.user.id,
+        ...profile,
+        updated_at: new Date().toISOString(),
+      })
     }
     if (data.session) {
       router.push('/dashboard')
@@ -48,10 +76,10 @@ export default function SignupPage() {
               <LumenStar size={78} />
             </div>
             <h1 className="text-5xl font-semibold leading-[1.04] text-lumen-text">
-              Turn bank exports into a living money map.
+              Your Revolut data, organized.
             </h1>
             <p className="mt-6 max-w-lg text-base leading-7 text-lumen-muted">
-              Lumen makes Revolut data legible for students, makers, and anyone who wants clean answers fast.
+              Import a CSV, review the categories, and keep a clear view of spending activity.
             </p>
           </div>
 
@@ -77,22 +105,55 @@ export default function SignupPage() {
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.48, ease: [0.16, 1, 0.3, 1] }}
-          className="relative z-10 w-full max-w-[430px]"
+          className="relative z-10 w-full max-w-[560px]"
         >
           <div className="mb-8 lg:hidden">
             <LumenLogo size={34} />
           </div>
 
-          <div className="lumen-panel rounded-[28px] p-7 sm:p-9">
+          <div className="lumen-panel rounded-[24px] p-6 sm:p-8">
             <div className="mb-8">
-              <p className="text-sm font-medium text-lumen-accent">Start fresh</p>
+              <p className="text-sm font-medium text-lumen-accent">Create account</p>
               <h2 className="mt-2 text-3xl font-semibold text-lumen-text">Create your account</h2>
               <p className="mt-3 text-sm leading-6 text-lumen-muted">
-                Set up a workspace for uploads, categories, analytics, and your demo-ready financial overview.
+                Add your details so the workspace is ready when you sign in.
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="firstName" className="mb-2 block text-sm font-medium text-lumen-text">
+                    First name
+                  </label>
+                  <input
+                    id="firstName"
+                    type="text"
+                    autoComplete="given-name"
+                    required
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="lumen-input px-4 py-3 text-sm placeholder:text-lumen-muted/55"
+                    placeholder="First name"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="lastName" className="mb-2 block text-sm font-medium text-lumen-text">
+                    Last name
+                  </label>
+                  <input
+                    id="lastName"
+                    type="text"
+                    autoComplete="family-name"
+                    required
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="lumen-input px-4 py-3 text-sm placeholder:text-lumen-muted/55"
+                    placeholder="Last name"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label htmlFor="email" className="mb-2 block text-sm font-medium text-lumen-text">
                   Email
@@ -109,6 +170,36 @@ export default function SignupPage() {
                 />
               </div>
 
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="phone" className="mb-2 block text-sm font-medium text-lumen-text">
+                    Phone
+                  </label>
+                  <input
+                    id="phone"
+                    type="tel"
+                    autoComplete="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="lumen-input px-4 py-3 text-sm placeholder:text-lumen-muted/55"
+                    placeholder="+31 6 12 34 56 78"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="dob" className="mb-2 block text-sm font-medium text-lumen-text">
+                    Date of birth
+                  </label>
+                  <input
+                    id="dob"
+                    type="date"
+                    autoComplete="bday"
+                    value={dob}
+                    onChange={(e) => setDob(e.target.value)}
+                    className="lumen-input px-4 py-3 text-sm"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label htmlFor="password" className="mb-2 block text-sm font-medium text-lumen-text">
                   Password
@@ -118,12 +209,13 @@ export default function SignupPage() {
                   type="password"
                   autoComplete="new-password"
                   required
-                  minLength={6}
+                  minLength={8}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="lumen-input px-4 py-3 text-sm placeholder:text-lumen-muted/55"
-                  placeholder="At least 6 characters"
+                  placeholder="At least 8 characters"
                 />
+                <PasswordStrengthMeter password={password} />
               </div>
 
               {error && (

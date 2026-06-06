@@ -78,7 +78,7 @@ export default function ConnectBrokerage() {
         <div className="mb-8 text-center">
           <h2 className="text-2xl font-semibold text-lumen-text">Connect your broker</h2>
           <p className="mt-2 text-sm leading-6 text-lumen-muted">
-            Link a brokerage account to view live positions, P&L, and portfolio allocation.
+            Link a brokerage account to view positions, P&L, and available cash.
           </p>
         </div>
 
@@ -213,7 +213,7 @@ export default function ConnectBrokerage() {
                     whileTap={{ scale: 0.98 }}
                     className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-lumen-accent text-[13px] font-semibold text-white shadow-accent-glow-sm transition-colors hover:bg-lumen-accent-dim disabled:opacity-50"
                   >
-                    {loading ? 'Connecting…' : `Connect ${broker.name}`}
+                    {loading ? 'Connecting...' : `Connect ${broker.name}`} 
                     {!loading && <ArrowRight size={15} />}
                   </motion.button>
                 </form>

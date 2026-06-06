@@ -14,7 +14,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .eq('id', user.id)
     .maybeSingle()
 
-  const displayName = [profile?.first_name, profile?.last_name]
+  const firstName = profile?.first_name ?? (user.user_metadata?.first_name as string | undefined)
+  const lastName = profile?.last_name ?? (user.user_metadata?.last_name as string | undefined)
+
+  const displayName = [firstName, lastName]
     .filter(Boolean)
     .join(' ')
     || user.email?.split('@')[0]

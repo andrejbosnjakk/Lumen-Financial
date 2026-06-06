@@ -26,21 +26,29 @@ export default async function AccountPage() {
 
   const totalImported = batches?.reduce((sum, batch) => sum + Number(batch.imported_count ?? 0), 0) ?? 0
   const totalDuplicates = batches?.reduce((sum, batch) => sum + Number(batch.duplicate_count ?? 0), 0) ?? 0
+  const metadataProfile = {
+    id: user!.id,
+    first_name: (user?.user_metadata?.first_name as string | undefined) ?? null,
+    last_name: (user?.user_metadata?.last_name as string | undefined) ?? null,
+    phone: (user?.user_metadata?.phone as string | undefined) ?? null,
+    date_of_birth: (user?.user_metadata?.date_of_birth as string | undefined) ?? null,
+    updated_at: new Date().toISOString(),
+  } as Profile
 
   return (
     <div className="space-y-6">
       <div className="animate-fade-up flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
         <div>
           <p className="text-sm font-medium text-lumen-accent">Account</p>
-          <h1 className="mt-2 text-3xl font-semibold text-lumen-text sm:text-4xl">Settings that stay out of the way.</h1>
+          <h1 className="mt-2 text-3xl font-semibold text-lumen-text sm:text-4xl">Account settings</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-lumen-muted">
-            Manage your profile, security, and import history without leaving the Lumen workspace.
+            Manage profile details, password, and imported CSV files.
           </p>
         </div>
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[1.25fr_0.75fr]">
-        <ProfileForm initialProfile={profile as Profile | null} email={user?.email ?? ''} />
+        <ProfileForm initialProfile={(profile as Profile | null) ?? metadataProfile} email={user?.email ?? ''} />
 
         <div className="space-y-5">
           <section className="lumen-panel rounded-[28px] p-5 sm:p-6">
@@ -63,7 +71,7 @@ export default async function AccountPage() {
               </div>
               <div>
                 <h2 className="text-sm font-semibold text-lumen-text">Import totals</h2>
-                <p className="mt-1 text-xs text-lumen-muted">A quick health check on uploaded data.</p>
+                <p className="mt-1 text-xs text-lumen-muted">Totals from uploaded CSV files.</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -84,7 +92,7 @@ export default async function AccountPage() {
         <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4 sm:px-6">
           <div>
             <h2 className="text-sm font-semibold text-lumen-text">Import history</h2>
-            <p className="mt-1 text-xs text-lumen-muted">Every CSV batch that has shaped your analytics.</p>
+            <p className="mt-1 text-xs text-lumen-muted">CSV uploads linked to this account.</p>
           </div>
         </div>
 
