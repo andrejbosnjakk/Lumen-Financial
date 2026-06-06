@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Download, Store, TrendingDown, TrendingUp, WalletCards } from 'lucide-react'
 import FinancialChat from './FinancialChat'
+import SubscriptionTracker from './SubscriptionTracker'
 import {
   Bar,
   BarChart,
@@ -343,6 +344,7 @@ export default function AnalyticsPage() {
             </section>
           )}
 
+          <SubscriptionTracker />
           <FinancialChat period={period} />
         </div>
       )}

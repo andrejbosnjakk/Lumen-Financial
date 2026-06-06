@@ -44,7 +44,7 @@
     FOR ALL USING (auth.uid() = id);
   ```
 - [x] **Import history** — table on Account page showing filename, imported count, duplicates, date; queries `import_batches` ordered by recency
-- [ ] **AI financial insights** — call Claude API with aggregated spend data to generate 2-3 personalised advice bullets; show on dashboard home below summary cards
+- [x] **AI financial insights** — rule-based insights engine (`InsightsPanel.tsx` + `/api/insights`); surfaces velocity, anomaly, recurring, savings, pattern, and largest-spend insights with positive/warning/danger/neutral tones; shown on dashboard
 - [ ] **Month/date range filter** — transactions page already has per-column date range; still needed on analytics route (`?month=YYYY-MM`) and dashboard home
 - [ ] **Demo mode** — seed a sample dataset so judges can try the app without a real Revolut CSV
 - [ ] **Responsive / mobile layout** — collapse sidebar to bottom nav on small screens
@@ -52,14 +52,25 @@
 ## P4 — Future ideas (brainstormed)
 
 ### AI / Intelligence
-- [ ] **Natural language query** — text input ("how much did I spend on food in April?"); Claude API parses intent → filters transactions → returns answer; show on dashboard or as a floating command bar
+- [x] **Natural language query** — `FinancialChat` component on Analytics page; user-supplied API key (Groq / Claude / ChatGPT); builds financial context from DB (categories, monthly breakdown, top merchants) and passes it as system prompt; conversation history (last 6 turns); suggestion chips; quota/rate-limit error handling; **requires Supabase migration:**
+  ```sql
+  CREATE TABLE user_ai_settings (
+    user_id    UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    provider   TEXT NOT NULL DEFAULT 'groq',
+    api_key    TEXT NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+  );
+  ALTER TABLE user_ai_settings ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "user owns ai settings" ON user_ai_settings
+    FOR ALL USING (auth.uid() = user_id);
+  ```
 - [ ] **Cash flow forecast** — detect recurring income + expenses, project account balance 30/60/90 days forward; display as line chart with dashed "predicted" section past today
 - [ ] **Anomaly detection** — flag transactions that are statistical outliers (3× average spend at a merchant, rare category, unusual amount); highlight with warning icon in transaction list
 - [ ] **Financial health score** — composite 0–100 score from savings rate, spending consistency, income stability, budget adherence; shown on dashboard, updates monthly
 
 ### Core UX gaps
 - [ ] **Budget goals** — user sets monthly spending cap per category (e.g. €300 Groceries); progress bar on analytics page; alert state at 80% and 100%; stored in a `budgets` table
-- [ ] **Subscription tracker** — dedicated view of all auto-detected recurring charges; shows total monthly cost; user can flag subscriptions to review or cancel
+- [x] **Subscription tracker** — `SubscriptionTracker` on Analytics page; detects weekly/monthly/quarterly/yearly recurring charges from full history using median gap + coefficient-of-variation filters; shows per-charge amount, frequency badge, monthly equivalent, and total monthly cost
 - [ ] **Month-over-month comparison** — side-by-side this month vs last month vs same month last year per category; add as a section on the analytics page
 - [ ] **Transaction notes** — free-text annotation field per transaction via edit modal; stored in `note` column on transactions table
 
