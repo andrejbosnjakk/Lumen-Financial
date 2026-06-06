@@ -9,6 +9,7 @@
 ## P1 — Core UI (judges need to see working features)
 
 - [x] **Dashboard home — summary cards** — queries DB directly (server component); shows current balance card + this month income/expenses/net; empty state links to transactions page
+- [ ] **Landing page** — simple public-facing entry page with product pitch, key features, and a CTA to sign up or upload a CSV
 - [x] **`/api/analytics` route** — implemented: totalIncome, totalExpenses, netSavings, byCategory, byMonth, topMerchants, recurring detection (2+ months); optional `?month=YYYY-MM` filter
 - [x] **Transactions page** — implemented: paginated table with search (debounced), category filter, date range, optimistic category correction, CSV upload button
 - [x] **Analytics page** — donut (spending by category), bar chart (monthly income vs expenses), net savings line chart, top merchants table; period selector (Week / Month / 3 Months / Year / All time); analytics cache (`lib/analyticsCache.ts`) with 5-min TTL keyed per date range, cleared on CSV upload
@@ -61,5 +62,6 @@
 - [ ] **Transaction notes** — free-text annotation field per transaction via edit modal; stored in `note` column on transactions table
 
 ### Reach / Differentiators
+- [ ] **Brokerage integration & portfolio page** — connect account to a brokerage (e.g. DEGIRO, eToro, Interactive Brokers); import positions via CSV export or OAuth API; dedicated Portfolio page showing: holdings table (ticker, quantity, avg cost, current price, P&L), total portfolio value, allocation pie chart by asset/sector, performance over time (line chart); store positions in a `portfolio_positions` table linked to user; stretch: live price polling via a market data API (e.g. Yahoo Finance, Twelve Data)
 - [ ] **Multi-bank CSV support** — add column mappings for ING, ABN AMRO, Rabobank; auto-detect bank from headers; same categorization pipeline after parsing
 - [x] **Export as PDF report** — "↓ Export PDF" button on analytics page; `lib/pdfReport.ts` uses `jspdf` + `jspdf-autotable`; includes dark header, summary totals, spending by category with % share, top merchants table, page footer; dynamically imported to keep jsPDF out of SSR bundle; filename includes period + date
