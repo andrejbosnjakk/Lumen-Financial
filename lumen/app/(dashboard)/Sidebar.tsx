@@ -37,7 +37,7 @@ export default function Sidebar({ email, displayName }: { email: string; display
   }
 
   return (
-    <aside className="relative flex h-full w-[84px] flex-shrink-0 flex-col overflow-hidden border-r border-white/[0.08] bg-[#00101d]/78 px-3 py-5 backdrop-blur-2xl sm:w-[230px] sm:px-4">
+    <aside className="relative flex h-full w-[84px] flex-shrink-0 flex-col overflow-hidden border-r border-white/[0.08] bg-[#00101d]/82 px-3 py-5 backdrop-blur-2xl sm:w-[230px] sm:px-4">
       <div className="pointer-events-none absolute -left-28 top-24 h-64 w-64 rounded-full bg-lumen-accent/15 blur-3xl" />
       <div className="pointer-events-none absolute bottom-16 right-0 h-44 w-44 rounded-full bg-lumen-success/10 blur-3xl" />
 

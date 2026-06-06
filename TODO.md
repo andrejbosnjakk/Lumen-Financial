@@ -1,5 +1,7 @@
 # HackDelft TODO
 
+- [x] **Revolut-style glass dashboard pass** - dashboard home refocused around a dense account panel, compact action pills, integrated recent activity, blue-black glass material, and a left-aligned app shell
+
 ## P0 — Core pipeline (nothing works without these)
 
 - [x] **Supabase schema** — schema in place; uploads and reads confirmed working

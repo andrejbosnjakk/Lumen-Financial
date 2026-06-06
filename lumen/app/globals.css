@@ -4,8 +4,8 @@
 
 :root {
   --lumen-bg:           #0D0F1A;
-  --lumen-surface:      rgba(27, 43, 57, 0.68);
-  --lumen-surface-2:    rgba(38, 56, 72, 0.72);
+  --lumen-surface:      rgba(29, 47, 62, 0.78);
+  --lumen-surface-2:    rgba(39, 59, 76, 0.8);
   --lumen-raised:       #F7F6F2;
   --lumen-border:       #252836;
   --lumen-accent:       #6C63FF;
@@ -37,9 +37,9 @@
 
 html, body {
   background:
-    radial-gradient(circle at 8% 0%, rgba(28, 112, 180, 0.28), transparent 30%),
-    radial-gradient(circle at 46% 10%, rgb(var(--lumen-accent-rgb) / 0.14), transparent 28%),
-    linear-gradient(135deg, #00101d 0%, #06111c 44%, #020912 100%);
+    radial-gradient(circle at 4% 0%, rgba(28, 112, 180, 0.3), transparent 32%),
+    radial-gradient(circle at 42% 10%, rgb(var(--lumen-accent-rgb) / 0.12), transparent 30%),
+    linear-gradient(135deg, #00101d 0%, #061522 46%, #020912 100%);
   background-color: var(--lumen-bg);
   color: var(--lumen-text);
   -webkit-font-smoothing: antialiased;
@@ -59,34 +59,34 @@ textarea {
 
 .lumen-panel {
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.055) 36%, rgba(255, 255, 255, 0.025)),
-    rgba(26, 40, 53, 0.68);
-  border: 1px solid rgba(247, 246, 242, 0.12);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.115), rgba(255, 255, 255, 0.048) 42%, rgba(255, 255, 255, 0.018)),
+    rgba(30, 47, 62, 0.74);
+  border: 1px solid rgba(247, 246, 242, 0.095);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 24px 80px rgba(2, 5, 13, 0.34);
-  backdrop-filter: blur(22px) saturate(145%);
-  -webkit-backdrop-filter: blur(22px) saturate(145%);
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 18px 48px rgba(2, 5, 13, 0.26);
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
 }
 
 .lumen-glass {
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.06) 42%, rgba(255, 255, 255, 0.024)),
-    rgba(27, 43, 57, 0.66);
-  border: 1px solid rgba(247, 246, 242, 0.13);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.055) 44%, rgba(255, 255, 255, 0.022)),
+    rgba(29, 47, 62, 0.78);
+  border: 1px solid rgba(247, 246, 242, 0.1);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 22px 70px rgba(1, 4, 12, 0.32);
-  backdrop-filter: blur(24px) saturate(150%);
-  -webkit-backdrop-filter: blur(24px) saturate(150%);
+    inset 0 1px 0 rgba(255, 255, 255, 0.075),
+    0 20px 54px rgba(1, 4, 12, 0.3);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
 }
 
 .lumen-pill {
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
 }
 
 .lumen-input {
