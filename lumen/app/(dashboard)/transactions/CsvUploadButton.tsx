@@ -19,7 +19,6 @@ export default function CsvUploadButton({ onUploadSuccess }: Props) {
     const file = e.target.files?.[0]
     if (!file) return
     e.target.value = ''
-
     setStatus(null)
 
     Papa.parse<RevolutRow>(file, {
@@ -27,7 +26,6 @@ export default function CsvUploadButton({ onUploadSuccess }: Props) {
       skipEmptyLines: true,
       complete: async (results) => {
         const headers = (results.meta.fields ?? []) as string[]
-
         if (!validateColumns(headers)) {
           setStatus({ type: 'error', message: 'Invalid CSV — missing required Revolut columns.' })
           return
@@ -61,13 +59,7 @@ export default function CsvUploadButton({ onUploadSuccess }: Props) {
 
   return (
     <div className="flex flex-col items-end gap-1.5">
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".csv"
-        onChange={handleFileChange}
-        className="hidden"
-      />
+      <input ref={inputRef} type="file" accept=".csv" onChange={handleFileChange} className="hidden" />
       <button
         onClick={() => inputRef.current?.click()}
         disabled={uploading}

@@ -10,8 +10,9 @@ interface Props {
 }
 
 function formatDate(dateStr: string) {
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('nl-NL', { day: '2-digit', month: 'short', year: 'numeric' })
+  return new Date(dateStr).toLocaleDateString('nl-NL', {
+    day: '2-digit', month: 'short', year: 'numeric',
+  })
 }
 
 export default function TransactionRow({ transaction: tx, saving, onCategoryChange }: Props) {

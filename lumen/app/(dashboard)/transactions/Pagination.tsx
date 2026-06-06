@@ -1,3 +1,5 @@
+'use client'
+
 interface Props {
   page: number
   pageSize: number
