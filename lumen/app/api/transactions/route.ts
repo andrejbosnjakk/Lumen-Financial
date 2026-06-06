@@ -38,5 +38,30 @@ export async function GET(request: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  return NextResponse.json({ data, count, page, pageSize })
+  const categories = new Set<string>()
+  const CATEGORY_PAGE_SIZE = 1000
+
+  for (let start = 0; ; start += CATEGORY_PAGE_SIZE) {
+    const { data: categoryRows, error: categoryError } = await supabase
+      .from('transactions')
+      .select('category')
+      .eq('user_id', user.id)
+      .range(start, start + CATEGORY_PAGE_SIZE - 1)
+
+    if (categoryError) return NextResponse.json({ error: categoryError.message }, { status: 500 })
+
+    for (const row of categoryRows ?? []) {
+      if (row.category) categories.add(row.category)
+    }
+
+    if (!categoryRows || categoryRows.length < CATEGORY_PAGE_SIZE) break
+  }
+
+  return NextResponse.json({
+    data,
+    count,
+    page,
+    pageSize,
+    categories: Array.from(categories).sort((a, b) => a.localeCompare(b)),
+  })
 }

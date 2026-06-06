@@ -3,11 +3,24 @@ import { createClient } from '@/lib/supabase/server'
 import { parseRow, type RevolutRow } from '@/lib/ingester'
 import { categorize } from '@/lib/categorizer'
 import {
-  mapModelCategory,
   modelConfidenceThreshold,
   predictCategories,
 } from '@/lib/mlCategorizer'
 import type { CategoryRule } from '@/lib/types'
+
+const LEGACY_APP_CATEGORIES = new Set([
+  'Groceries',
+  'Transport',
+  'Subscriptions',
+  'Housing',
+  'Dining',
+  'Health',
+  'Income',
+  'Savings',
+  'Shopping',
+  'Transfers',
+  'Uncategorized',
+])
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -60,7 +73,7 @@ export async function POST(request: NextRequest) {
     const category = categorize(description, rules)
     const stagedIndex = staged.push({ row, category }) - 1
 
-    if (category === 'Uncategorized' && description.trim() && Number.isFinite(amount)) {
+    if (description.trim() && Number.isFinite(amount) && row.State === 'COMPLETED') {
       modelTargets.push({ stagedIndex, description, amount })
     }
   }
@@ -79,11 +92,7 @@ export async function POST(request: NextRequest) {
         const target = modelTargets[i]
         if (!prediction || !target || prediction.confidence < threshold) continue
 
-        staged[target.stagedIndex].category = mapModelCategory(
-          prediction.category,
-          target.description,
-          target.amount
-        )
+        staged[target.stagedIndex].category = prediction.category || 'Uncategorized'
         modelCategorized++
       }
     } catch (error) {
@@ -146,6 +155,12 @@ export async function POST(request: NextRequest) {
     return Boolean(category && category !== 'Uncategorized')
   }
 
+  function shouldUpdateDuplicateCategory(existingCategory: string | null | undefined, nextCategory: string) {
+    if (!nextCategory || nextCategory === 'Uncategorized') return false
+    if (!existingCategory || existingCategory === 'Uncategorized') return true
+    return existingCategory !== nextCategory && LEGACY_APP_CATEGORIES.has(existingCategory)
+  }
+
   const existingGroups = new Map<string, typeof existing>()
   for (const transaction of existing) {
     const key = txKey(transaction.completed_date, transaction.description, transaction.amount)
@@ -181,11 +196,7 @@ export async function POST(request: NextRequest) {
     const existingMatch = existingByKey.get(key)
     if (existingMatch) {
       duplicates++
-      if (
-        tx.category !== 'Uncategorized' &&
-        existingMatch.id &&
-        (!existingMatch.category || existingMatch.category === 'Uncategorized')
-      ) {
+      if (existingMatch.id && shouldUpdateDuplicateCategory(existingMatch.category, tx.category)) {
         duplicateCategoryUpdates.push({ id: existingMatch.id, category: tx.category })
         existingMatch.category = tx.category
       }

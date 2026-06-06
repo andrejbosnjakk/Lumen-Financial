@@ -19,6 +19,7 @@ export default function TransactionsPage() {
   const [category, setCategory] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [categoryOptions, setCategoryOptions] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [savingId, setSavingId] = useState<string | null>(null)
@@ -41,6 +42,7 @@ export default function TransactionsPage() {
       if (!res.ok) throw new Error(json.error ?? 'Failed to load')
       setTransactions(json.data ?? [])
       setCount(json.count ?? 0)
+      setCategoryOptions(Array.isArray(json.categories) ? json.categories : [])
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to load transactions')
     } finally {
@@ -132,6 +134,7 @@ export default function TransactionsPage() {
       <FilterBar
         search={search}
         category={category}
+        categories={categoryOptions}
         dateFrom={dateFrom}
         dateTo={dateTo}
         onSearchChange={handleSearchChange}

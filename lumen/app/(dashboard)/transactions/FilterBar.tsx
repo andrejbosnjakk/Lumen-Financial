@@ -1,11 +1,11 @@
 'use client'
 
 import { Search } from 'lucide-react'
-import { CATEGORIES } from '@/lib/types'
 
 interface Props {
   search: string
   category: string
+  categories: string[]
   dateFrom: string
   dateTo: string
   onSearchChange: (v: string) => void
@@ -17,9 +17,13 @@ interface Props {
 const inputCls = 'text-[13px] border border-lumen-border rounded-xl px-3 py-2 bg-lumen-surface-2 text-lumen-text placeholder:text-lumen-muted/50 focus:outline-none focus:border-lumen-accent focus:ring-1 focus:ring-lumen-accent transition-colors'
 
 export default function FilterBar({
-  search, category, dateFrom, dateTo,
+  search, category, categories, dateFrom, dateTo,
   onSearchChange, onCategoryChange, onDateFromChange, onDateToChange,
 }: Props) {
+  const options = category && !categories.includes(category)
+    ? [category, ...categories]
+    : categories
+
   return (
     <div className="flex flex-wrap gap-3 mb-6">
       <div className="flex-1 min-w-48 relative">
@@ -38,7 +42,7 @@ export default function FilterBar({
         className={inputCls}
       >
         <option value="">All categories</option>
-        {CATEGORIES.map((c) => (
+        {options.map((c) => (
           <option key={c} value={c}>{c}</option>
         ))}
       </select>

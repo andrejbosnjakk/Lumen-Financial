@@ -23,8 +23,7 @@ import {
 import type { AnalyticsData } from '@/lib/types'
 import { getCachedAnalytics, setCachedAnalytics } from '@/lib/analyticsCache'
 import { useChartTheme, type ChartTheme } from '@/lib/useChartTheme'
-
-const COLORS = ['var(--lumen-accent)', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#F97316', '#EC4899']
+import { categoryColor } from '@/lib/categoryColors'
 
 function fmt(n: number) {
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(n)
@@ -334,8 +333,8 @@ export default function AnalyticsPage() {
                 <ResponsiveContainer width="100%" height={265}>
                   <PieChart>
                     <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={62} outerRadius={92} paddingAngle={3}>
-                      {categoryData.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      {categoryData.map((d) => (
+                        <Cell key={d.name} fill={categoryColor(d.name).text} />
                       ))}
                     </Pie>
                     <Tooltip
@@ -345,10 +344,10 @@ export default function AnalyticsPage() {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="grid gap-2 sm:grid-cols-2">
-                  {categoryData.slice(0, 6).map((d, i) => (
+                  {categoryData.slice(0, 6).map((d) => (
                     <div key={d.name} className="flex items-center justify-between gap-3 rounded-2xl bg-lumen-fill-sm px-3 py-2">
                       <span className="flex min-w-0 items-center gap-2 text-xs text-lumen-muted">
-                        <span className="h-2.5 w-2.5 flex-shrink-0 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
+                        <span className="h-2.5 w-2.5 flex-shrink-0 rounded-full" style={{ background: categoryColor(d.name).text }} />
                         <span className="truncate">{d.name}</span>
                       </span>
                       <span className="text-xs font-semibold text-lumen-text">{fmt(d.value)}</span>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
-import { CATEGORIES, type Transaction } from '@/lib/types'
+import type { Transaction } from '@/lib/types'
 
 interface Props {
   transaction: Transaction
@@ -142,15 +142,12 @@ export default function EditModal({ transaction, onSave, onClose }: Props) {
 
             <div>
               <label className={labelCls}>Category</label>
-              <select
+              <input
+                type="text"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 className={inputCls}
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
+              />
             </div>
 
             {error && <p className="text-[12px] text-lumen-danger">{error}</p>}
