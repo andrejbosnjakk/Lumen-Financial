@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { parseRow, type RevolutRow } from '@/lib/ingester'
 import { categorize } from '@/lib/categorizer'
+import {
+  mapModelCategory,
+  modelConfidenceThreshold,
+  predictCategories,
+} from '@/lib/mlCategorizer'
 import type { CategoryRule } from '@/lib/types'
 
 export async function POST(request: NextRequest) {
@@ -44,10 +49,49 @@ export async function POST(request: NextRequest) {
   }
 
   // Parse rows — drops non-COMPLETED and malformed rows
+  const staged: { row: RevolutRow; category: string }[] = []
+  const modelTargets: { stagedIndex: number; description: string; amount: number }[] = []
   const parsed = []
   let failed = 0
+
   for (const row of rows) {
-    const tx = parseRow(row, user.id, batch.id, categorize(row.Description ?? '', rules))
+    const description = row.Description ?? ''
+    const amount = Number(row.Amount)
+    const category = categorize(description, rules)
+    const stagedIndex = staged.push({ row, category }) - 1
+
+    if (category === 'Uncategorized' && description.trim() && Number.isFinite(amount)) {
+      modelTargets.push({ stagedIndex, description, amount })
+    }
+  }
+
+  let modelCategorized = 0
+  if (modelTargets.length > 0) {
+    try {
+      const predictions = await predictCategories(
+        modelTargets.map(({ description, amount }) => ({ description, amount }))
+      )
+      const threshold = modelConfidenceThreshold()
+
+      for (let i = 0; i < predictions.length; i++) {
+        const prediction = predictions[i]
+        const target = modelTargets[i]
+        if (!prediction || !target || prediction.confidence < threshold) continue
+
+        staged[target.stagedIndex].category = mapModelCategory(
+          prediction.category,
+          target.description,
+          target.amount
+        )
+        modelCategorized++
+      }
+    } catch (error) {
+      console.warn('[transactions/ingest] ML categorizer unavailable:', error)
+    }
+  }
+
+  for (const { row, category } of staged) {
+    const tx = parseRow(row, user.id, batch.id, category)
     if (tx) {
       parsed.push(tx)
     } else {
@@ -56,7 +100,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (parsed.length === 0) {
-    return NextResponse.json({ imported: 0, duplicates: failed, failed: 0 })
+    return NextResponse.json({ imported: 0, duplicates: failed, failed: 0, modelCategorized })
   }
 
   // Deduplicate against existing transactions for this user.
@@ -109,5 +153,5 @@ export async function POST(request: NextRequest) {
     .update({ imported_count: imported, duplicate_count: duplicates })
     .eq('id', batch.id)
 
-  return NextResponse.json({ imported, duplicates, failed })
+  return NextResponse.json({ imported, duplicates, failed, modelCategorized })
 }

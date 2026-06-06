@@ -8,6 +8,7 @@
     "start": "next start",
     "serve": "next start -H 0.0.0.0",
     "demo": "npm run build && npm run serve",
+    "categorizer": "python -m uvicorn server:app --host 127.0.0.1 --port 8001 --app-dir services/categorizer",
     "lint": "next lint"
   },
   "dependencies": {
