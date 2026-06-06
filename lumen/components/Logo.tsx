@@ -1,10 +1,10 @@
 import Image from 'next/image'
 
 const LOGO_SRC = '/brand/lumen-logo.png'
-// Intrinsic dimensions of the new logo
-const LOGO_W = 2508
-const LOGO_H = 627
-const LOGO_ASPECT = LOGO_W / LOGO_H // ≈ 4.0
+// Intrinsic dimensions of the logo (1000×250, transparent bg)
+const LOGO_W = 1000
+const LOGO_H = 250
+const LOGO_ASPECT = LOGO_W / LOGO_H // 4.0
 
 interface StarProps {
   size?: number
