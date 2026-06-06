@@ -61,8 +61,8 @@ export default function InsightsPanel() {
           const Icon = ICON[ins.type]
           const tone = TONE_CLS[ins.tone]
           return (
-            <div key={i} className="flex gap-3 rounded-2xl bg-white/[0.035] p-4">
-              <div className={`mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-white/[0.04] ${tone.icon}`}>
+            <div key={i} className="flex gap-3 rounded-2xl bg-lumen-fill-sm p-4">
+              <div className={`mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-lumen-fill ${tone.icon}`}>
                 <Icon size={15} strokeWidth={2} />
               </div>
               <div className="min-w-0 flex-1">

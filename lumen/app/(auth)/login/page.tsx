@@ -217,12 +217,12 @@ function AuthVisual() {
         </div>
 
         <div className="grid max-w-xl grid-cols-2 gap-3">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-4">
+          <div className="rounded-2xl border border-lumen-border bg-lumen-fill p-4">
             <ShieldCheck className="mb-5 text-lumen-accent" size={22} />
             <p className="text-sm font-semibold text-lumen-text">Private by design</p>
-            <p className="mt-1 text-sm leading-5 text-lumen-muted">Row-level security — your data is visible only to you.</p>
+            <p className="mt-1 text-sm leading-5 text-lumen-muted">Row-level security - your data is visible only to you.</p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-4">
+          <div className="rounded-2xl border border-lumen-border bg-lumen-fill p-4">
             <BarChart2 className="mb-5 text-lumen-accent" size={22} />
             <p className="text-sm font-semibold text-lumen-text">Instant insights</p>
             <p className="mt-1 text-sm leading-5 text-lumen-muted">Category breakdown, cash flow, and PDF export.</p>

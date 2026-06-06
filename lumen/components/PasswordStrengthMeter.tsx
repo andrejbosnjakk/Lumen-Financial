@@ -35,7 +35,7 @@ export default function PasswordStrengthMeter({ password }: { password: string }
     <div className="mt-3 space-y-2">
       <div className="grid grid-cols-5 gap-1.5">
         {[0, 1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-1.5 rounded-full bg-white/10">
+          <div key={i} className="h-1.5 rounded-full bg-lumen-fill">
             <div className={`h-full rounded-full transition-all ${i < active ? color : 'bg-transparent'}`} />
           </div>
         ))}

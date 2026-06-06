@@ -17,7 +17,7 @@ export default function Pagination({ page, pageSize, count, onPageChange }: Prop
   return (
     <div className="flex items-center justify-between pt-4">
       <p className="text-[12px] text-lumen-muted">
-        Showing {from}–{to} of {count} transactions
+        Showing {from}-{to} of {count} transactions
       </p>
       <div className="flex gap-2">
         <button
@@ -25,14 +25,14 @@ export default function Pagination({ page, pageSize, count, onPageChange }: Prop
           disabled={page <= 1}
           className="px-3 py-1.5 text-[12px] border border-lumen-border rounded-lg bg-lumen-surface text-lumen-muted disabled:opacity-30 hover:bg-lumen-surface-2 hover:text-lumen-text transition-colors"
         >
-          ← Prev
+          Prev
         </button>
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages}
           className="px-3 py-1.5 text-[12px] border border-lumen-border rounded-lg bg-lumen-surface text-lumen-muted disabled:opacity-30 hover:bg-lumen-surface-2 hover:text-lumen-text transition-colors"
         >
-          Next →
+          Next
         </button>
       </div>
     </div>

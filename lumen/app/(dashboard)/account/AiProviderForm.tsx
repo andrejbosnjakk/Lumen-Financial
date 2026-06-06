@@ -101,7 +101,7 @@ export default function AiProviderForm() {
             className={`rounded-2xl border p-4 text-left transition-colors ${
               provider === p.id
                 ? 'border-lumen-accent/60 bg-lumen-accent/10'
-                : 'border-white/[0.08] bg-white/[0.03] hover:border-white/[0.16]'
+                : 'border-lumen-border bg-lumen-fill-sm hover:border-lumen-accent/30'
             }`}
           >
             <div className="flex items-center gap-1.5">
@@ -123,7 +123,7 @@ export default function AiProviderForm() {
 
       {/* API key input */}
       {maskedKey ? (
-        <div className="flex items-center justify-between rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 py-3">
+        <div className="flex items-center justify-between rounded-2xl border border-lumen-border bg-lumen-fill px-4 py-3">
           <div>
             <p className="text-[11px] text-lumen-muted">{selected.name} API key</p>
             <p className="mt-0.5 font-mono text-sm text-lumen-text">{maskedKey}</p>
@@ -146,7 +146,7 @@ export default function AiProviderForm() {
               onChange={e => setApiKey(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSave()}
               placeholder={`Paste your ${selected.name} API key`}
-              className="w-full rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 pr-11 font-mono text-sm text-lumen-text placeholder:text-lumen-muted/50 focus:border-lumen-accent/50 focus:outline-none"
+              className="w-full rounded-2xl border border-lumen-border bg-lumen-fill px-4 py-3 pr-11 font-mono text-sm text-lumen-text placeholder:text-lumen-muted/50 focus:border-lumen-accent/50 focus:outline-none"
             />
             <button
               type="button"
@@ -173,7 +173,7 @@ export default function AiProviderForm() {
           className="flex h-10 w-full items-center justify-center gap-2 rounded-2xl bg-lumen-accent text-sm font-semibold text-white transition-colors hover:bg-lumen-accent-dim disabled:opacity-50"
         >
           {saving ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
-          {saving ? 'Saving…' : 'Save key'}
+          {saving ? 'Saving...' : 'Save key'}
         </button>
       )}
 

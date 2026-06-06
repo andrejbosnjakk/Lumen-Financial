@@ -135,7 +135,7 @@ export default function PortfolioView({ accountType }: { accountType: 'live' | '
       sub: null,
       Icon: Wallet,
       tone: 'text-lumen-text',
-      bg: 'bg-white/[0.06]',
+      bg: 'bg-lumen-fill',
     },
     {
       label: 'Invested',
@@ -230,7 +230,7 @@ export default function PortfolioView({ accountType }: { accountType: 'live' | '
 
       {/* Positions */}
       <div className="lumen-panel overflow-hidden rounded-[24px]">
-        <div className="border-b border-white/[0.07] px-5 py-4">
+        <div className="border-b border-lumen-border px-5 py-4">
           <p className="text-sm font-semibold text-lumen-text">
             Positions
             <span className="ml-2 text-xs font-normal text-lumen-muted">{positions.length} open</span>

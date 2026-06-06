@@ -248,21 +248,21 @@ export default function AnalyticsPage() {
             <button
               onClick={handleExport}
               disabled={exporting}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-4 text-sm font-semibold text-lumen-text transition-colors hover:border-lumen-accent/45 hover:text-lumen-accent disabled:cursor-not-allowed disabled:opacity-55"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-lumen-border bg-lumen-fill px-4 text-sm font-semibold text-lumen-text transition-colors hover:border-lumen-accent/45 hover:text-lumen-accent disabled:cursor-not-allowed disabled:opacity-55"
             >
               <Download size={16} />
               {exporting ? 'Exporting...' : 'Export PDF'}
             </button>
           )}
 
-          <div className="flex overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.04]">
+          <div className="flex overflow-hidden rounded-2xl border border-lumen-border bg-lumen-fill">
             {PERIODS.map(({ key, label }, i) => (
               <button
                 key={key}
                 onClick={() => setPeriod(key)}
                 className={`min-h-11 px-3 text-xs font-semibold transition-colors sm:px-3.5 sm:text-sm ${
-                  i < PERIODS.length - 1 ? 'border-r border-white/[0.08]' : ''
-                } ${period === key ? 'bg-lumen-accent text-white' : 'text-lumen-muted hover:bg-white/[0.05] hover:text-lumen-text'}`}
+                  i < PERIODS.length - 1 ? 'border-r border-lumen-border' : ''
+                } ${period === key ? 'bg-lumen-accent text-white' : 'text-lumen-muted hover:bg-lumen-fill hover:text-lumen-text'}`}
               >
                 {label}
               </button>
@@ -346,7 +346,7 @@ export default function AnalyticsPage() {
                 </ResponsiveContainer>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {categoryData.slice(0, 6).map((d, i) => (
-                    <div key={d.name} className="flex items-center justify-between gap-3 rounded-2xl bg-white/[0.035] px-3 py-2">
+                    <div key={d.name} className="flex items-center justify-between gap-3 rounded-2xl bg-lumen-fill-sm px-3 py-2">
                       <span className="flex min-w-0 items-center gap-2 text-xs text-lumen-muted">
                         <span className="h-2.5 w-2.5 flex-shrink-0 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
                         <span className="truncate">{d.name}</span>
@@ -377,15 +377,15 @@ export default function AnalyticsPage() {
 
           {data.topMerchants.length > 0 && (
             <section className="lumen-panel overflow-hidden rounded-[28px]">
-              <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4 sm:px-6">
+              <div className="flex items-center justify-between border-b border-lumen-border px-5 py-4 sm:px-6">
                 <div>
                   <h2 className="text-sm font-semibold text-lumen-text">Top merchants</h2>
                   <p className="mt-1 text-xs text-lumen-muted">Largest merchants in the selected period.</p>
                 </div>
               </div>
-              <div className="divide-y divide-white/[0.07]">
+              <div className="divide-y divide-lumen-border">
                 {data.topMerchants.map((m, i) => (
-                  <div key={i} className="grid grid-cols-[1fr_auto] items-center gap-4 px-5 py-4 transition-colors hover:bg-white/[0.035] sm:grid-cols-[1fr_120px_140px] sm:px-6">
+                  <div key={i} className="grid grid-cols-[1fr_auto] items-center gap-4 px-5 py-4 transition-colors hover:bg-lumen-fill-sm sm:grid-cols-[1fr_120px_140px] sm:px-6">
                     <div className="flex min-w-0 items-center gap-3">
                       <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-lumen-accent/10 text-lumen-accent">
                         <Store size={18} />

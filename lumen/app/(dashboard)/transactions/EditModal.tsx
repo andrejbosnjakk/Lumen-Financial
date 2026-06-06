@@ -169,7 +169,7 @@ export default function EditModal({ transaction, onSave, onClose }: Props) {
                 whileTap={{ scale: 0.98 }}
                 className="flex-1 px-4 py-2.5 text-[13px] font-semibold bg-lumen-accent text-white rounded-xl hover:bg-lumen-accent-dim disabled:opacity-50 transition-colors"
               >
-                {saving ? 'Saving…' : 'Save changes'}
+                {saving ? 'Saving...' : 'Save changes'}
               </motion.button>
             </div>
           </form>

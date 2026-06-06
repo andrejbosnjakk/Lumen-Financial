@@ -7,17 +7,17 @@ const features = [
   {
     Icon: FileUp,
     title: 'One-click import',
-    body: 'Export from Revolut, drop it in Lumen. Duplicates are detected automatically — import as often as you like.',
+    body: 'Export from Revolut, drop it in Lumen. Duplicates are detected automatically - import as often as you like.',
   },
   {
     Icon: Sparkles,
     title: 'Instant categorization',
-    body: 'Rule-based categorization fires first — Albert Heijn → Groceries, OVpay → Transport. Every label is editable.',
+    body: 'Rule-based categorization fires first - Albert Heijn > Groceries, OVpay > Transport. Every label is editable.',
   },
   {
     Icon: BarChart2,
     title: 'Spending analytics',
-    body: 'Income vs expenses, category breakdown, net savings, and top merchants — all from a single view.',
+    body: 'Income vs expenses, category breakdown, net savings, and top merchants - all from a single view.',
   },
   {
     Icon: CalendarRange,
@@ -27,7 +27,7 @@ const features = [
   {
     Icon: ShieldCheck,
     title: 'Private by design',
-    body: 'Row-level security means your transactions are only visible to you — not even us.',
+    body: 'Row-level security means your transactions are only visible to you - not even us.',
   },
   {
     Icon: Tags,
@@ -37,7 +37,7 @@ const features = [
 ]
 
 const steps = [
-  { number: '01', title: 'Export from Revolut', body: 'Go to Revolut → Statements → Export account statement as CSV.' },
+  { number: '01', title: 'Export from Revolut', body: 'Go to Revolut > Statements > Export account statement as CSV.' },
   { number: '02', title: 'Upload to Lumen', body: 'Drop the file on the dashboard. Transactions are parsed, deduplicated, and categorized in seconds.' },
   { number: '03', title: 'Explore your insights', body: 'Browse analytics, correct any labels, and export a PDF report.' },
 ]
@@ -80,9 +80,9 @@ export default async function LandingPage() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_40%_at_50%_-10%,rgb(var(--lumen-accent-rgb)/0.10),transparent)]" />
 
         <div className="relative mx-auto max-w-4xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.035] px-4 py-1.5">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-lumen-border bg-lumen-fill-sm px-4 py-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-lumen-accent" />
-            <span className="text-xs font-semibold text-lumen-muted">HackDelft 2026 · Revolut AI Challenge</span>
+            <span className="text-xs font-semibold text-lumen-muted">HackDelft 2026 - Revolut AI Challenge</span>
           </div>
 
           <div className="mb-6 flex justify-center">
@@ -122,7 +122,7 @@ export default async function LandingPage() {
                 </Link>
                 <Link
                   href="/login"
-                  className="flex h-12 items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-7 text-sm font-semibold text-lumen-text transition-colors hover:border-lumen-accent/40 hover:text-lumen-accent"
+                  className="flex h-12 items-center gap-2 rounded-2xl border border-lumen-border bg-lumen-fill px-7 text-sm font-semibold text-lumen-text transition-colors hover:border-lumen-accent/40 hover:text-lumen-accent"
                 >
                   Sign in
                 </Link>
@@ -132,7 +132,7 @@ export default async function LandingPage() {
 
           {!user && (
             <p className="mt-5 text-xs text-lumen-muted/60">
-              No credit card required · Works with standard Revolut CSV exports
+              No credit card required - Works with standard Revolut CSV exports
             </p>
           )}
         </div>
@@ -147,7 +147,7 @@ export default async function LandingPage() {
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {features.map(({ Icon, title, body }) => (
-              <div key={title} className="lumen-panel rounded-[22px] p-6 transition-colors hover:border-white/[0.14]">
+              <div key={title} className="lumen-panel rounded-[22px] p-6 transition-colors hover:border-lumen-accent/30">
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-2xl bg-lumen-accent/10 text-lumen-accent">
                   <Icon size={20} />
                 </div>
@@ -208,11 +208,11 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <footer className="border-t border-white/[0.06] px-5 py-8 sm:px-8">
+      <footer className="border-t border-lumen-border px-5 py-8 sm:px-8">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <Image src="/brand/lumen-logo-pixel-faithful.png" alt="Lumen" height={26} width={104} style={{ objectFit: 'contain', objectPosition: 'left' }} />
           <p className="text-xs text-lumen-muted/60">
-            HackDelft 2026 · Revolut AI Challenge
+            HackDelft 2026 - Revolut AI Challenge
           </p>
         </div>
       </footer>

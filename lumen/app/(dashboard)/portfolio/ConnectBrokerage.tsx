@@ -23,7 +23,7 @@ const BROKERS = [
     description: 'Import via CSV export',
     initial: 'D',
     mode: 'csv' as const,
-    howTo: 'Portfolio → Reports → Transactions CSV',
+    howTo: 'Portfolio > Reports > Transactions CSV',
   },
   {
     id: 'ibkr' as const,
@@ -31,7 +31,7 @@ const BROKERS = [
     description: 'Import via Activity Statement CSV',
     initial: 'IB',
     mode: 'csv' as const,
-    howTo: 'Reports → Activity Statement → CSV (include Open Positions)',
+    howTo: 'Reports > Activity Statement > CSV (include Open Positions)',
   },
 ]
 
@@ -126,11 +126,11 @@ export default function ConnectBrokerage() {
               className={`w-full flex items-center gap-4 rounded-[20px] border p-4 text-left transition-all ${
                 selected === b.id
                   ? 'border-lumen-accent bg-lumen-accent/8 shadow-accent-glow-sm'
-                  : 'border-lumen-border bg-lumen-surface hover:border-white/20 hover:bg-lumen-surface-2'
+                  : 'border-lumen-border bg-lumen-surface hover:border-lumen-accent/30 hover:bg-lumen-surface-2'
               }`}
             >
               <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl border text-sm font-bold ${
-                selected === b.id ? 'border-lumen-accent/40 bg-lumen-accent/15 text-lumen-accent' : 'border-white/10 bg-white/[0.04] text-lumen-muted'
+                selected === b.id ? 'border-lumen-accent/40 bg-lumen-accent/15 text-lumen-accent' : 'border-lumen-border bg-lumen-fill text-lumen-muted'
               }`}>
                 {b.initial}
               </div>
@@ -165,7 +165,7 @@ export default function ConnectBrokerage() {
             >
               <div className="lumen-panel rounded-[24px] p-6">
                 {broker.mode === 'api' ? (
-                  /* ── Trading 212 API key form ── */
+                  /* -- Trading 212 API key form -- */
                   <form onSubmit={handleConnect} className="space-y-4">
                     <div>
                       <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wider text-lumen-muted">API key</label>
@@ -200,14 +200,14 @@ export default function ConnectBrokerage() {
                     {error && <p className="rounded-xl border border-lumen-danger/25 bg-lumen-danger/10 px-4 py-3 text-[12px] text-lumen-danger">{error}</p>}
                     <motion.button type="submit" disabled={loading || !apiKey.trim()} whileTap={{ scale: 0.98 }}
                       className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-lumen-accent text-[13px] font-semibold text-white shadow-accent-glow-sm transition-colors hover:bg-lumen-accent-dim disabled:opacity-50">
-                      {loading ? <><Loader2 size={15} className="animate-spin" /> Connecting…</> : <>{`Connect ${broker.name}`} <ArrowRight size={15} /></>}
+                      {loading ? <><Loader2 size={15} className="animate-spin" /> Connecting...</> : <>{`Connect ${broker.name}`} <ArrowRight size={15} /></>}
                     </motion.button>
                   </form>
                 ) : (
-                  /* ── CSV upload form (IBKR / DEGIRO) ── */
+                  /* -- CSV upload form (IBKR / DEGIRO) -- */
                   <form onSubmit={handleUpload} className="space-y-4">
                     {'howTo' in broker && (
-                      <p className="rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 text-[12px] text-lumen-muted">
+                      <p className="rounded-xl border border-lumen-border bg-lumen-fill-sm px-4 py-3 text-[12px] text-lumen-muted">
                         <span className="font-semibold text-lumen-text">How to export: </span>{broker.howTo}
                       </p>
                     )}
@@ -215,17 +215,17 @@ export default function ConnectBrokerage() {
                       <label className="mb-1.5 block text-[11px] font-medium uppercase tracking-wider text-lumen-muted">CSV file</label>
                       <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleFileChange} />
                       <button type="button" onClick={() => fileRef.current?.click()}
-                        className="flex w-full items-center gap-3 rounded-xl border border-dashed border-white/[0.15] bg-white/[0.025] px-4 py-4 text-left text-[13px] transition-colors hover:border-lumen-accent/40 hover:bg-lumen-accent/5">
+                        className="flex w-full items-center gap-3 rounded-xl border border-dashed border-lumen-border bg-lumen-fill-sm px-4 py-4 text-left text-[13px] transition-colors hover:border-lumen-accent/40 hover:bg-lumen-accent/5">
                         <FileUp size={18} className="flex-shrink-0 text-lumen-accent" />
                         <span className={fileName ? 'text-lumen-text font-medium' : 'text-lumen-muted'}>
-                          {fileName ?? 'Click to choose a CSV file…'}
+                          {fileName ?? 'Click to choose a CSV file...'}
                         </span>
                       </button>
                     </div>
                     {error && <p className="rounded-xl border border-lumen-danger/25 bg-lumen-danger/10 px-4 py-3 text-[12px] text-lumen-danger">{error}</p>}
                     <motion.button type="submit" disabled={loading || !file} whileTap={{ scale: 0.98 }}
                       className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-lumen-accent text-[13px] font-semibold text-white shadow-accent-glow-sm transition-colors hover:bg-lumen-accent-dim disabled:opacity-50">
-                      {loading ? <><Loader2 size={15} className="animate-spin" /> Processing…</> : <>{`Import ${broker.name}`} <ArrowRight size={15} /></>}
+                      {loading ? <><Loader2 size={15} className="animate-spin" /> Processing...</> : <>{`Import ${broker.name}`} <ArrowRight size={15} /></>}
                     </motion.button>
                     <p className="text-center text-[11px] text-lumen-muted/60">
                       Prices are resolved in real-time via Yahoo Finance after upload.

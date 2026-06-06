@@ -99,7 +99,7 @@ export default async function DashboardPage() {
           <h1 className="text-3xl font-bold text-lumen-text sm:text-4xl">Home</h1>
           <p className="mt-1 text-sm font-medium text-lumen-muted">{greeting}, {name}</p>
         </div>
-        <Link href="/transactions" className="lumen-pill inline-flex h-11 items-center justify-center rounded-full px-4 text-sm font-bold text-lumen-text transition-colors hover:bg-white/20">
+        <Link href="/transactions" className="lumen-pill inline-flex h-11 items-center justify-center rounded-full px-4 text-sm font-bold text-lumen-text transition-colors hover:bg-lumen-fill">
           See all
         </Link>
       </div>
@@ -115,7 +115,7 @@ export default async function DashboardPage() {
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-lumen-accent text-[10px] font-bold text-white">
                   E
                 </span>
-                <span className="text-sm font-medium text-lumen-muted">Personal · {currency}</span>
+                <span className="text-sm font-medium text-lumen-muted">Personal - {currency}</span>
               </div>
               {balanceDate && <p className="text-xs text-lumen-muted/70">Updated {balanceDate}</p>}
             </div>
@@ -125,7 +125,7 @@ export default async function DashboardPage() {
               const overBudget = monthIncome > 0 && monthExpenses > monthIncome
               return (
                 <div className="mt-6">
-                  <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.08]">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-lumen-fill">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${overBudget ? 'bg-lumen-danger' : 'bg-[linear-gradient(90deg,var(--lumen-accent),#10B981)]'}`}
                       style={{ width: `${Math.round(spendRatio * 100)}%` }}
@@ -141,7 +141,7 @@ export default async function DashboardPage() {
           </div>
 
           {recentTxs && recentTxs.length > 0 && (
-            <div className="relative border-t border-white/[0.08]">
+            <div className="relative border-t border-lumen-border">
               <div className="flex items-center justify-between px-4 py-4 sm:px-5">
                 <p className="text-sm font-bold text-lumen-text">Recent activity</p>
                 <Link href="/transactions" className="text-sm font-bold text-lumen-text transition-colors hover:text-lumen-accent">See all</Link>
@@ -151,7 +151,7 @@ export default async function DashboardPage() {
                   const amt = Number(tx.amount)
                   const positive = amt > 0
                   return (
-                    <div key={tx.id} className="grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 transition-colors hover:bg-white/[0.055] sm:px-5">
+                    <div key={tx.id} className="grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 transition-colors hover:bg-lumen-fill sm:px-5">
                       <div className={`relative flex h-11 w-11 items-center justify-center rounded-full ${positive ? 'bg-lumen-success/20 text-lumen-success' : 'bg-sky-400/18 text-sky-200'}`}>
                         <ReceiptText size={18} />
                       </div>

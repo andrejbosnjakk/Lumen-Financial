@@ -36,7 +36,7 @@ export default function PortfolioCharts({ positions }: { positions: ChartPositio
     ...(otherValue > 0 ? [{ name: 'Other', value: Math.round(otherValue * 100) / 100 }] : []),
   ]
 
-  // Waterfall: all positions sorted best → worst P&L
+  // Waterfall: all positions sorted best > worst P&L
   const waterfallData = [...positions]
     .sort((a, b) => b.pnl - a.pnl)
     .map(p => ({ name: p.label, pnl: Math.round(p.pnl * 100) / 100 }))
@@ -46,7 +46,7 @@ export default function PortfolioCharts({ positions }: { positions: ChartPositio
   return (
     <div className="grid gap-5 xl:grid-cols-2">
 
-      {/* ── Allocation donut ── */}
+      {/* -- Allocation donut -- */}
       <section className="lumen-panel rounded-[28px] p-5 sm:p-6">
         <h2 className="text-sm font-semibold text-lumen-text">Allocation</h2>
         <p className="mt-1 text-xs text-lumen-muted">Portfolio weight by position.</p>
@@ -80,7 +80,7 @@ export default function PortfolioCharts({ positions }: { positions: ChartPositio
 
         <div className="mt-1 grid gap-2 sm:grid-cols-2">
           {donutData.map((d, i) => (
-            <div key={d.name} className="flex items-center justify-between gap-3 rounded-2xl bg-white/[0.035] px-3 py-2">
+            <div key={d.name} className="flex items-center justify-between gap-3 rounded-2xl bg-lumen-fill-sm px-3 py-2">
               <span className="flex min-w-0 items-center gap-2 text-xs text-lumen-muted">
                 <span className="h-2 w-2 flex-shrink-0 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
                 <span className="truncate">{d.name}</span>
@@ -93,7 +93,7 @@ export default function PortfolioCharts({ positions }: { positions: ChartPositio
         </div>
       </section>
 
-      {/* ── P&L waterfall ── */}
+      {/* -- P&L waterfall -- */}
       <section className="lumen-panel rounded-[28px] p-5 sm:p-6">
         <h2 className="text-sm font-semibold text-lumen-text">P&L by position</h2>
         <p className="mt-1 text-xs text-lumen-muted">Unrealized gain / loss per holding.</p>
@@ -108,7 +108,7 @@ export default function PortfolioCharts({ positions }: { positions: ChartPositio
             <XAxis
               type="number"
               tick={{ fontSize: 10, fill: chartTheme.axis }}
-              tickFormatter={v => `€${v}`}
+              tickFormatter={v => `EUR ${v}`}
               axisLine={false}
               tickLine={false}
             />

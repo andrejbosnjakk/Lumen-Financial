@@ -34,7 +34,7 @@ export default function FinancialChat({ period }: Props) {
       .then(d => {
         setConfigured(d.configured ?? false)
         if (d.configured) {
-          const names: Record<string, string> = { groq: 'Groq · Llama 3.3', anthropic: 'Claude', openai: 'ChatGPT' }
+          const names: Record<string, string> = { groq: 'Groq - Llama 3.3', anthropic: 'Claude', openai: 'ChatGPT' }
           setProviderName(names[d.provider] ?? d.provider)
         }
       })
@@ -72,7 +72,7 @@ export default function FinancialChat({ period }: Props) {
         return
       }
       if (res.status === 429) {
-        setError(data.error ?? 'Rate limited — wait a moment and try again.')
+        setError(data.error ?? 'Rate limited - wait a moment and try again.')
         setMessages(prev => prev.slice(0, -1))
         return
       }
@@ -112,7 +112,7 @@ export default function FinancialChat({ period }: Props) {
         </div>
         <Link
           href="/account"
-          className="flex items-center gap-1.5 rounded-xl border border-white/[0.08] px-3 py-1.5 text-[12px] text-lumen-muted hover:text-lumen-text transition-colors"
+          className="flex items-center gap-1.5 rounded-xl border border-lumen-border px-3 py-1.5 text-[12px] text-lumen-muted hover:text-lumen-text transition-colors"
         >
           <Settings2 size={12} />
           {configured ? 'Change' : 'Set up'}
@@ -121,7 +121,7 @@ export default function FinancialChat({ period }: Props) {
 
       {/* Not configured */}
       {!configured && (
-        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6 text-center">
+        <div className="rounded-2xl border border-lumen-border bg-lumen-fill-sm p-6 text-center">
           <p className="text-sm font-semibold text-lumen-text">No AI provider connected</p>
           <p className="mt-2 text-[13px] text-lumen-muted">
             Connect a free{' '}
@@ -136,7 +136,7 @@ export default function FinancialChat({ period }: Props) {
       {/* Chat */}
       {configured && (
         <div className="space-y-4">
-          {/* Suggestions — shown until first message */}
+          {/* Suggestions - shown until first message */}
           {messages.length === 0 && (
             <div className="flex flex-wrap gap-2">
               {SUGGESTIONS.map(s => (
@@ -144,7 +144,7 @@ export default function FinancialChat({ period }: Props) {
                   key={s}
                   onClick={() => send(s)}
                   disabled={loading}
-                  className="rounded-2xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-[12px] text-lumen-muted transition-colors hover:border-lumen-accent/40 hover:text-lumen-text disabled:opacity-50"
+                  className="rounded-2xl border border-lumen-border bg-lumen-fill px-3 py-2 text-[12px] text-lumen-muted transition-colors hover:border-lumen-accent/40 hover:text-lumen-text disabled:opacity-50"
                 >
                   {s}
                 </button>
@@ -161,7 +161,7 @@ export default function FinancialChat({ period }: Props) {
                     className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-6 ${
                       m.role === 'user'
                         ? 'bg-lumen-accent text-white'
-                        : 'border border-white/[0.08] bg-white/[0.04] text-lumen-text'
+                        : 'border border-lumen-border bg-lumen-fill text-lumen-text'
                     }`}
                   >
                     {m.content}
@@ -170,9 +170,9 @@ export default function FinancialChat({ period }: Props) {
               ))}
               {loading && (
                 <div className="flex justify-start">
-                  <div className="flex items-center gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 py-3">
+                  <div className="flex items-center gap-2 rounded-2xl border border-lumen-border bg-lumen-fill px-4 py-3">
                     <Loader2 size={14} className="animate-spin text-lumen-accent" />
-                    <span className="text-[12px] text-lumen-muted">Thinking…</span>
+                    <span className="text-[12px] text-lumen-muted">Thinking...</span>
                   </div>
                 </div>
               )}
@@ -202,10 +202,10 @@ export default function FinancialChat({ period }: Props) {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={quotaExhausted ? 'API quota exhausted — update your key in Account settings' : 'Ask about your finances…'}
+              placeholder={quotaExhausted ? 'API quota exhausted - update your key in Account settings' : 'Ask about your finances...'}
               rows={1}
               disabled={loading || quotaExhausted}
-              className="flex-1 resize-none rounded-2xl border border-white/[0.08] bg-white/[0.04] px-4 py-3 text-sm text-lumen-text placeholder:text-lumen-muted/50 focus:border-lumen-accent/50 focus:outline-none disabled:opacity-50"
+              className="flex-1 resize-none rounded-2xl border border-lumen-border bg-lumen-fill px-4 py-3 text-sm text-lumen-text placeholder:text-lumen-muted/50 focus:border-lumen-accent/50 focus:outline-none disabled:opacity-50"
               style={{ minHeight: 46, maxHeight: 120 }}
               onInput={e => {
                 const t = e.currentTarget
@@ -221,7 +221,7 @@ export default function FinancialChat({ period }: Props) {
               {loading ? <Loader2 size={16} className="animate-spin" /> : <ArrowUp size={16} />}
             </button>
           </div>
-          <p className="text-[11px] text-lumen-muted/60">Enter to send · Shift+Enter for newline</p>
+          <p className="text-[11px] text-lumen-muted/60">Enter to send - Shift+Enter for newline</p>
         </div>
       )}
     </section>

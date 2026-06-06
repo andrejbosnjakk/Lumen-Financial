@@ -88,7 +88,7 @@ export default function SignupPage() {
               { Icon: BadgeCheck, label: 'Clean' },
               { Icon: LineChart, label: 'Understand' },
             ].map(({ Icon, label }) => (
-              <div key={label} className="rounded-2xl border border-white/10 bg-white/[0.045] p-4">
+              <div key={label} className="rounded-2xl border border-lumen-border bg-lumen-fill p-4">
                 <Icon className="mb-7 text-lumen-accent" size={22} />
                 <p className="text-sm font-semibold text-lumen-text">{label}</p>
               </div>

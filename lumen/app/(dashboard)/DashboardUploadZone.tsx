@@ -28,7 +28,7 @@ export default function DashboardUploadZone() {
         const headers = (results.meta.fields ?? []) as string[]
         if (!validateColumns(headers)) {
           setPhase('error')
-          setMessage("This doesn't look like a Revolut CSV — check the column headers.")
+          setMessage("This doesn't look like a Revolut CSV - check the column headers.")
           return
         }
         setPhase('uploading')
@@ -83,7 +83,7 @@ export default function DashboardUploadZone() {
       }}
       transition={{ duration: 0.2 }}
       className={`lumen-glass rounded-[30px] border-2 border-dashed p-14 text-center transition-colors select-none ${
-        clickable ? 'cursor-pointer hover:bg-white/[0.075]' : ''
+        clickable ? 'cursor-pointer hover:bg-lumen-fill' : ''
       }`}
     >
       <input ref={inputRef} type="file" accept=".csv" onChange={handleFileChange} className="hidden" />
@@ -96,7 +96,7 @@ export default function DashboardUploadZone() {
             className="w-9 h-9 border-2 border-lumen-accent/25 border-t-lumen-accent rounded-full mx-auto"
           />
           <div>
-            <p className="text-sm font-medium text-lumen-text">Parsing and categorizing…</p>
+            <p className="text-sm font-medium text-lumen-text">Parsing and categorizing...</p>
             <p className="text-xs text-lumen-muted mt-1">Duplicates are skipped automatically</p>
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function DashboardUploadZone() {
           </div>
           <div>
             <p className="text-sm font-semibold text-lumen-success">{message}</p>
-            <p className="text-xs text-lumen-muted mt-1">Updating your dashboard…</p>
+            <p className="text-xs text-lumen-muted mt-1">Updating your dashboard...</p>
           </div>
         </div>
       )}

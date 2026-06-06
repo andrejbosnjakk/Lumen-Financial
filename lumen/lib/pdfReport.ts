@@ -52,7 +52,7 @@ export async function generatePdfReport(data: AnalyticsData, period: Period, ext
     return y
   }
 
-  // ── Header ──────────────────────────────────────────────────────────────
+  // Header
   doc.setFillColor(17, 17, 17)
   doc.rect(0, 0, W, 38, 'F')
 
@@ -70,7 +70,7 @@ export async function generatePdfReport(data: AnalyticsData, period: Period, ext
   const genDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
   doc.text(`Generated: ${genDate}`, W - 14, 32, { align: 'right' })
 
-  // ── Summary ──────────────────────────────────────────────────────────────
+  // Summary
   let y = 50
   sectionHeader(doc, 'Summary', y)
   y += 6
@@ -92,7 +92,7 @@ export async function generatePdfReport(data: AnalyticsData, period: Period, ext
 
   y = getY(doc) + 12
 
-  // ── Spending by category ─────────────────────────────────────────────────
+  // Spending by category
   const categoryRows = Object.entries(data.byCategory).sort(([, a], [, b]) => b - a)
 
   if (categoryRows.length > 0) {
@@ -115,7 +115,7 @@ export async function generatePdfReport(data: AnalyticsData, period: Period, ext
     y = getY(doc) + 12
   }
 
-  // ── Top merchants ────────────────────────────────────────────────────────
+  // Top merchants
   if (data.topMerchants.length > 0) {
     y = checkPageBreak(y, 60)
     sectionHeader(doc, 'Top Merchants', y)
@@ -134,7 +134,7 @@ export async function generatePdfReport(data: AnalyticsData, period: Period, ext
     y = getY(doc) + 12
   }
 
-  // ── Insights ─────────────────────────────────────────────────────────────
+  // Insights
   if (extras.insights && extras.insights.length > 0) {
     y = checkPageBreak(y, 60)
     sectionHeader(doc, 'AI Insights', y)
@@ -153,7 +153,7 @@ export async function generatePdfReport(data: AnalyticsData, period: Period, ext
     y = getY(doc) + 12
   }
 
-  // ── Subscriptions ─────────────────────────────────────────────────────────
+  // Subscriptions
   if (extras.subscriptions && extras.subscriptions.length > 0) {
     y = checkPageBreak(y, 60)
     sectionHeader(doc, 'Active Subscriptions', y)
@@ -181,10 +181,10 @@ export async function generatePdfReport(data: AnalyticsData, period: Period, ext
     y = getY(doc) + 12
   }
 
-  // ── Zombie subscriptions ──────────────────────────────────────────────────
+  // Zombie subscriptions
   if (extras.zombies && extras.zombies.length > 0) {
     y = checkPageBreak(y, 60)
-    sectionHeader(doc, 'Zombie Subscriptions — Review These', y)
+    sectionHeader(doc, 'Zombie Subscriptions - Review These', y)
     y += 2
     doc.setFontSize(9)
     doc.setFont('helvetica', 'normal')
@@ -199,7 +199,7 @@ export async function generatePdfReport(data: AnalyticsData, period: Period, ext
         z.description,
         z.zombieReason === 'overdue'
           ? `No charge in ${z.staleDays} days (expected ${z.frequency})`
-          : `Small recurring — ${z.count} months, easy to overlook`,
+          : `Small recurring - ${z.count} months, easy to overlook`,
         new Date(z.lastCharge).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
         fmt(z.monthlyEquivalent),
       ]),
@@ -212,10 +212,10 @@ export async function generatePdfReport(data: AnalyticsData, period: Period, ext
     y = getY(doc) + 12
   }
 
-  // ── Age-group comparison ──────────────────────────────────────────────────
+  // Age-group comparison
   if (extras.ageComparisons && extras.ageComparisons.length > 0 && extras.ageGroup) {
     y = checkPageBreak(y, 60)
-    sectionHeader(doc, `Peer Comparison — ${extras.ageGroup} Age Group`, y)
+    sectionHeader(doc, `Peer Comparison - ${extras.ageGroup} Age Group`, y)
     y += 2
     doc.setFontSize(9)
     doc.setFont('helvetica', 'normal')
@@ -255,13 +255,13 @@ export async function generatePdfReport(data: AnalyticsData, period: Period, ext
     y = getY(doc) + 12
   }
 
-  // ── Footer on every page ─────────────────────────────────────────────────
+  // Footer on every page
   const pageCount = doc.getNumberOfPages()
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i)
     doc.setFontSize(8)
     doc.setTextColor(160, 160, 160)
-    doc.text(`Lumen Financial Report · Page ${i} of ${pageCount}`, W / 2, H - 8, { align: 'center' })
+    doc.text(`Lumen Financial Report - Page ${i} of ${pageCount}`, W / 2, H - 8, { align: 'center' })
   }
 
   doc.save(`lumen-report-${period}-${new Date().toISOString().split('T')[0]}.pdf`)

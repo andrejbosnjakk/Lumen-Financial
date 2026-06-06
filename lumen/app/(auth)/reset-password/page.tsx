@@ -19,7 +19,7 @@ function ResetForm() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    // Supabase sends ?code=... — exchange it for a session
+    // Supabase sends ?code=... - exchange it for a session
     const code = searchParams.get('code')
     if (!code) {
       setError('Invalid or expired reset link. Please request a new one.')

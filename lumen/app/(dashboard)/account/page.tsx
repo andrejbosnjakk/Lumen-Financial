@@ -75,11 +75,11 @@ export default async function AccountPage() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-white/[0.04] p-4">
+              <div className="rounded-2xl bg-lumen-fill p-4">
                 <p className="text-xs text-lumen-muted">Imported</p>
                 <p className="mt-2 text-2xl font-semibold text-lumen-text tabular-nums">{totalImported}</p>
               </div>
-              <div className="rounded-2xl bg-white/[0.04] p-4">
+              <div className="rounded-2xl bg-lumen-fill p-4">
                 <p className="text-xs text-lumen-muted">Duplicates</p>
                 <p className="mt-2 text-2xl font-semibold text-lumen-text tabular-nums">{totalDuplicates}</p>
               </div>
@@ -102,7 +102,7 @@ export default async function AccountPage() {
       </section>
 
       <section className="animate-fade-up stagger-2 lumen-panel overflow-hidden rounded-[28px]">
-        <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4 sm:px-6">
+        <div className="flex items-center justify-between border-b border-lumen-border px-5 py-4 sm:px-6">
           <div>
             <h2 className="text-sm font-semibold text-lumen-text">Import history</h2>
             <p className="mt-1 text-xs text-lumen-muted">CSV uploads linked to this account.</p>
@@ -118,9 +118,9 @@ export default async function AccountPage() {
             <p className="mt-1 text-sm text-lumen-muted">Upload a Revolut CSV to start building history.</p>
           </div>
         ) : (
-          <div className="divide-y divide-white/[0.07]">
+          <div className="divide-y divide-lumen-border">
             {batches.map((b) => (
-              <div key={b.id} className="grid gap-3 px-5 py-4 transition-colors hover:bg-white/[0.035] sm:grid-cols-[1fr_110px_110px_130px] sm:items-center sm:px-6">
+              <div key={b.id} className="grid gap-3 px-5 py-4 transition-colors hover:bg-lumen-fill-sm sm:grid-cols-[1fr_110px_110px_130px] sm:items-center sm:px-6">
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-lumen-accent/10 text-lumen-accent">
                     <FileText size={18} />

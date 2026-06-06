@@ -56,7 +56,7 @@ export default function ProfileForm({ initialProfile, email }: Props) {
 
   return (
     <section className="lumen-panel overflow-hidden rounded-[28px]">
-      <div className="border-b border-white/[0.07] p-5 sm:p-6">
+      <div className="border-b border-lumen-border p-5 sm:p-6">
         <div className="flex items-center gap-4">
           <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-[24px] bg-lumen-accent text-xl font-bold text-white shadow-accent-glow-sm">
             {avatarLetters}

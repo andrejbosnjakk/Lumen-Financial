@@ -15,6 +15,7 @@ const config: Config = {
           'surface-2':  'var(--lumen-surface-2)',
           border:       'var(--lumen-border)',
           fill:         'var(--lumen-fill)',
+          'fill-sm':    'var(--lumen-fill-sm)',
           accent:       'rgb(var(--lumen-accent-rgb) / <alpha-value>)',
           'accent-dim': 'rgb(var(--lumen-accent-dim-rgb) / <alpha-value>)',
           'accent-glow':'rgb(var(--lumen-accent-rgb) / 0.15)',

@@ -64,7 +64,7 @@ export default function SubscriptionTracker() {
 
   return (
     <section className="lumen-panel overflow-hidden rounded-[28px]">
-      <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4 sm:px-6">
+      <div className="flex items-center justify-between border-b border-lumen-border px-5 py-4 sm:px-6">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-lumen-accent/10 text-lumen-accent">
             <Repeat2 size={18} />
@@ -99,9 +99,9 @@ export default function SubscriptionTracker() {
           <p className="mt-1 text-sm text-lumen-muted">Recurring charges will appear here once enough history is available.</p>
         </div>
       ) : (
-        <div className="divide-y divide-white/[0.07]">
+        <div className="divide-y divide-lumen-border">
           {subs.map((s, i) => (
-            <div key={i} className="grid grid-cols-[1fr_auto] items-center gap-4 px-5 py-4 transition-colors hover:bg-white/[0.035] sm:grid-cols-[1fr_110px_120px_130px] sm:px-6">
+            <div key={i} className="grid grid-cols-[1fr_auto] items-center gap-4 px-5 py-4 transition-colors hover:bg-lumen-fill-sm sm:grid-cols-[1fr_110px_120px_130px] sm:px-6">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-lumen-accent/10 text-lumen-accent">
                   <Repeat2 size={16} />

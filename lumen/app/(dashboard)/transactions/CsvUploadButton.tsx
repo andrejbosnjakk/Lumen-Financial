@@ -31,7 +31,7 @@ export default function CsvUploadButton({ onUploadSuccess }: Props) {
       complete: async (results) => {
         const headers = (results.meta.fields ?? []) as string[]
         if (!validateColumns(headers)) {
-          setStatus({ type: 'error', message: 'Invalid CSV — missing required Revolut columns.' })
+          setStatus({ type: 'error', message: 'Invalid CSV - missing required Revolut columns.' })
           return
         }
         setUploading(true)
@@ -102,7 +102,7 @@ export default function CsvUploadButton({ onUploadSuccess }: Props) {
         ) : (
           <Upload size={14} />
         )}
-        {uploading ? 'Uploading…' : dragOver ? 'Drop to upload' : 'Upload CSV'}
+        {uploading ? 'Uploading...' : dragOver ? 'Drop to upload' : 'Upload CSV'}
       </motion.button>
       {status && (
         <p className={`text-[11px] ${status.type === 'success' ? 'text-lumen-success' : 'text-lumen-danger'}`}>

@@ -62,7 +62,7 @@ export default function AgeComparison() {
 
   return (
     <section className="lumen-panel overflow-hidden rounded-[28px]">
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.07] px-5 py-4 sm:px-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-lumen-border px-5 py-4 sm:px-6">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-lumen-accent/10 text-lumen-accent">
             <Users size={18} />
@@ -76,7 +76,7 @@ export default function AgeComparison() {
         <select
           value={ageGroup}
           onChange={(e) => setAgeGroup(e.target.value)}
-          className="rounded-xl border border-white/10 bg-lumen-surface-2 px-3 py-2 text-xs font-semibold text-lumen-text focus:outline-none focus:ring-2 focus:ring-lumen-accent/40"
+          className="rounded-xl border border-lumen-border bg-lumen-surface-2 px-3 py-2 text-xs font-semibold text-lumen-text focus:outline-none focus:ring-2 focus:ring-lumen-accent/40"
         >
           <option value="">Select your age group</option>
           {AGE_GROUPS.map((g) => (
@@ -102,7 +102,7 @@ export default function AgeComparison() {
           <p className="text-sm text-lumen-muted">Not enough matching category data yet.</p>
         </div>
       ) : (
-        <div className="divide-y divide-white/[0.07]">
+        <div className="divide-y divide-lumen-border">
           {comparisons.slice(0, 8).map((c, i) => {
             const pct = Math.round((c.ratio - 1) * 100)
             const isOver = c.direction === 'over'
@@ -119,7 +119,7 @@ export default function AgeComparison() {
                     </span>
                   </div>
                 </div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+                <div className="h-1.5 overflow-hidden rounded-full bg-lumen-fill">
                   <div
                     className={`h-full rounded-full transition-all ${isOver ? 'bg-lumen-danger' : isUnder ? 'bg-lumen-success' : 'bg-lumen-accent'}`}
                     style={{ width: `${barWidth}%` }}

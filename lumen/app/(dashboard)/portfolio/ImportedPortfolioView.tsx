@@ -28,7 +28,7 @@ function PriceSourceBadge({ source }: { source: ImportedPosition['priceSource'] 
     <span className="ml-1.5 rounded-md bg-lumen-warning/10 px-1.5 py-0.5 text-[10px] font-semibold text-lumen-warning">STMT</span>
   )
   return (
-    <span className="ml-1.5 rounded-md bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-semibold text-lumen-muted">COST</span>
+    <span className="ml-1.5 rounded-md bg-lumen-fill px-1.5 py-0.5 text-[10px] font-semibold text-lumen-muted">COST</span>
   )
 }
 
@@ -69,7 +69,7 @@ function ImportCard({ imp, onRemove }: { imp: BrokerImport; onRemove: (broker: s
   }
 
   const statCards = [
-    { label: 'Portfolio value', value: fmt(imp.totalValue), Icon: Wallet, tone: 'text-lumen-text', bg: 'bg-white/[0.06]' },
+    { label: 'Portfolio value', value: fmt(imp.totalValue), Icon: Wallet, tone: 'text-lumen-text', bg: 'bg-lumen-fill' },
     { label: 'Invested',        value: fmt(imp.totalCost),  Icon: TrendingUp, tone: 'text-lumen-accent', bg: 'bg-lumen-accent/10' },
     {
       label: 'Unrealized P&L',
@@ -91,7 +91,7 @@ function ImportCard({ imp, onRemove }: { imp: BrokerImport; onRemove: (broker: s
             <span className="rounded-full bg-lumen-accent/10 px-2.5 py-0.5 text-[11px] font-semibold text-lumen-accent">CSV Import</span>
           </div>
           <p className="mt-0.5 text-[12px] text-lumen-muted">
-            {imp.filename} · imported {fmtDate(imp.importedAt)}
+            {imp.filename} - imported {fmtDate(imp.importedAt)}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -155,7 +155,7 @@ function ImportCard({ imp, onRemove }: { imp: BrokerImport; onRemove: (broker: s
 
       {/* Positions table */}
       <div className="lumen-panel overflow-hidden rounded-[24px]">
-        <div className="border-b border-white/[0.07] px-5 py-4">
+        <div className="border-b border-lumen-border px-5 py-4">
           <p className="text-sm font-semibold text-lumen-text">
             Positions
             <span className="ml-2 text-xs font-normal text-lumen-muted">{imp.positions.length} open</span>
@@ -306,7 +306,7 @@ export function AddImportCard() {
             key={b}
             onClick={() => setBroker(b)}
             className={`rounded-2xl border px-4 py-2 text-[12px] font-semibold transition-colors ${
-              broker === b ? 'border-lumen-accent/60 bg-lumen-accent/10 text-lumen-accent' : 'border-white/[0.08] text-lumen-muted hover:border-white/[0.16]'
+              broker === b ? 'border-lumen-accent/60 bg-lumen-accent/10 text-lumen-accent' : 'border-lumen-border text-lumen-muted hover:border-lumen-accent/30'
             }`}
           >
             {BROKER_LABEL[b]}
@@ -319,7 +319,7 @@ export function AddImportCard() {
           className="flex items-center gap-2 rounded-2xl bg-lumen-accent px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-lumen-accent-dim disabled:opacity-50"
         >
           {uploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
-          {uploading ? 'Processing…' : 'Upload CSV'}
+          {uploading ? 'Processing...' : 'Upload CSV'}
         </button>
       </div>
       {error && <p className="mt-3 text-[12px] text-lumen-danger">{error}</p>}

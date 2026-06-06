@@ -52,7 +52,7 @@ export default function TransactionRow({ transaction: tx, saving, onCategoryChan
             <span className="text-[11px] text-lumen-muted">Delete?</span>
             <button
               onClick={() => onDelete(tx.id)}
-              className="text-[11px] font-medium text-lumen-danger hover:text-red-400 transition-colors"
+              className="text-[11px] font-medium text-lumen-danger transition-colors hover:text-lumen-danger/80"
             >
               Yes
             </button>

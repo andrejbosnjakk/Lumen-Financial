@@ -56,7 +56,7 @@ function groupDimension(
           map.set(key, (map.get(key) ?? 0) + pos.marketValue * w)
           covered += w
         }
-        // Top-N holdings may not cover 100% of the fund; remainder → Other
+        // Top-N holdings may not cover 100% of the fund; remainder > Other
         const remainder = 1 - covered
         if (remainder > 0.02) {
           map.set('Other', (map.get('Other') ?? 0) + pos.marketValue * remainder)
@@ -150,13 +150,13 @@ function DonutPanel({
       {!loading && data.length > 0 && (
         <div className="mt-2 space-y-1.5">
           {chartData.map((d, i) => (
-            <div key={d.name} className="flex items-center justify-between gap-2 rounded-xl bg-white/[0.035] px-3 py-1.5">
+            <div key={d.name} className="flex items-center justify-between gap-2 rounded-xl bg-lumen-fill-sm px-3 py-1.5">
               <span className="flex min-w-0 items-center gap-2 text-[11px] text-lumen-muted">
                 <span className="h-2 w-2 flex-shrink-0 rounded-full" style={{ background: colorFor(d.name, i) }} />
                 <span className="truncate">{d.name}</span>
               </span>
               <span className="tabular-nums text-[11px] font-semibold text-lumen-text">
-                {total > 0 ? ((d.value / total) * 100).toFixed(1) + '%' : '—'}
+                {total > 0 ? ((d.value / total) * 100).toFixed(1) + '%' : '-'}
               </span>
             </div>
           ))}
@@ -232,8 +232,8 @@ export default function RiskBreakdown({ positions }: { positions: RiskPosition[]
     : null
 
   const statChips = [
-    { label: 'Countries', value: loading ? '…' : uniqueCountries > 0 ? String(uniqueCountries) : '—' },
-    { label: 'Sectors',   value: loading ? '…' : uniqueSectors   > 0 ? String(uniqueSectors)   : '—' },
+    { label: 'Countries', value: loading ? '...' : uniqueCountries > 0 ? String(uniqueCountries) : '-' },
+    { label: 'Sectors',   value: loading ? '...' : uniqueSectors   > 0 ? String(uniqueSectors)   : '-' },
     { label: 'Top position', value: topPct.toFixed(1) + '%' },
     ...(weightedBeta !== null
       ? [{ label: 'Portfolio beta', value: weightedBeta.toFixed(2) }]

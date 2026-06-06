@@ -36,7 +36,7 @@ export default function UploadModal({ onClose, onSuccess }: Props) {
         if (!validateColumns(headers)) {
           setState({
             status: 'error',
-            message: 'This doesn\'t look like a Revolut CSV. Expected columns: Type, Started Date, Completed Date, Description, Amount, Fee, Currency, State, Balance.',
+            message: "This doesn't look like a Revolut CSV. Expected columns: Type, Started Date, Completed Date, Description, Amount, Fee, Currency, State, Balance.",
           })
           return
         }
@@ -81,59 +81,59 @@ export default function UploadModal({ onClose, onSuccess }: Props) {
       setState({ status: 'done', result })
       onSuccess()
     } catch {
-      setState({ status: 'error', message: 'Network error — please try again.' })
+      setState({ status: 'error', message: 'Network error - please try again.' })
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-6">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-gray-900">Upload Revolut CSV</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4 backdrop-blur-sm">
+      <div className="lumen-panel w-full max-w-md rounded-[24px] p-6 shadow-accent-glow">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-base font-semibold text-lumen-text">Upload Revolut CSV</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl leading-none"
+            aria-label="Close upload modal"
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-lumen-muted transition-colors hover:bg-lumen-fill hover:text-lumen-text"
           >
-            ×
+            x
           </button>
         </div>
 
         {state.status === 'done' ? (
           <div className="space-y-4">
-            <div className="rounded-lg bg-gray-50 border border-gray-200 p-4 space-y-1">
-              <p className="text-sm text-gray-900">
+            <div className="space-y-1 rounded-2xl border border-lumen-border bg-lumen-fill p-4">
+              <p className="text-sm text-lumen-text">
                 <span className="font-medium">{state.result.imported}</span> transactions imported
               </p>
               {state.result.duplicates > 0 && (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-lumen-muted">
                   {state.result.duplicates} duplicates skipped
                 </p>
               )}
               {state.result.failed > 0 && (
-                <p className="text-sm text-red-500">
+                <p className="text-sm text-lumen-danger">
                   {state.result.failed} rows failed
                 </p>
               )}
             </div>
             <button
               onClick={onClose}
-              className="w-full bg-gray-900 text-white py-2 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"
+              className="flex h-11 w-full items-center justify-center rounded-2xl bg-lumen-accent text-sm font-semibold text-white transition-colors hover:bg-lumen-accent-dim"
             >
               Done
             </button>
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Drop zone */}
             <div
               onClick={() => inputRef.current?.click()}
               onDrop={handleDrop}
               onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
               onDragLeave={() => setDragOver(false)}
-              className={`relative cursor-pointer rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
+              className={`relative cursor-pointer rounded-2xl border border-dashed p-8 text-center transition-colors ${
                 dragOver
-                  ? 'border-gray-400 bg-gray-50'
-                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  ? 'border-lumen-accent/50 bg-lumen-accent/10'
+                  : 'border-lumen-border bg-lumen-fill-sm hover:border-lumen-accent/40 hover:bg-lumen-fill'
               }`}
             >
               <input
@@ -146,33 +146,33 @@ export default function UploadModal({ onClose, onSuccess }: Props) {
 
               {state.status === 'ready' ? (
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{state.file.name}</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {state.rows.length} rows · {(state.file.size / 1024).toFixed(1)} KB
+                  <p className="text-sm font-medium text-lumen-text">{state.file.name}</p>
+                  <p className="mt-1 text-xs text-lumen-muted">
+                    {state.rows.length} rows - {(state.file.size / 1024).toFixed(1)} KB
                   </p>
-                  <p className="text-xs text-gray-400 mt-2">Click to choose a different file</p>
+                  <p className="mt-2 text-xs text-lumen-muted">Click to choose a different file</p>
                 </div>
               ) : (
                 <div>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-lumen-muted">
                     Drag and drop your CSV here, or{' '}
-                    <span className="text-gray-900 font-medium">browse</span>
+                    <span className="font-medium text-lumen-text">browse</span>
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">Revolut account statement CSV only</p>
+                  <p className="mt-1 text-xs text-lumen-muted">Revolut account statement CSV only</p>
                 </div>
               )}
             </div>
 
             {state.status === 'error' && (
-              <p className="text-sm text-red-600">{state.message}</p>
+              <p className="text-sm text-lumen-danger">{state.message}</p>
             )}
 
             <button
               onClick={handleUpload}
               disabled={state.status !== 'ready'}
-              className="w-full bg-gray-900 text-white py-2 rounded-lg text-sm font-medium hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="flex h-11 w-full items-center justify-center rounded-2xl bg-lumen-accent text-sm font-semibold text-white transition-colors hover:bg-lumen-accent-dim disabled:cursor-not-allowed disabled:opacity-45"
             >
-              {state.status === 'uploading' ? 'Uploading…' : 'Upload'}
+              {state.status === 'uploading' ? 'Uploading...' : 'Upload'}
             </button>
           </div>
         )}
