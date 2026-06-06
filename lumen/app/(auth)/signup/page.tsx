@@ -1,15 +1,16 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 export default function SignupPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [done, setDone] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -17,7 +18,7 @@ export default function SignupPage() {
     setLoading(true)
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signUp({ email, password })
+    const { data, error } = await supabase.auth.signUp({ email, password })
 
     if (error) {
       setError(error.message)
@@ -25,20 +26,14 @@ export default function SignupPage() {
       return
     }
 
-    setDone(true)
-  }
-
-  if (done) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-full max-w-sm bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">Check your email</h1>
-          <p className="text-sm text-gray-500">
-            We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.
-          </p>
-        </div>
-      </div>
-    )
+    // If email confirmation is disabled, Supabase returns a session immediately
+    if (data.session) {
+      router.push('/')
+      router.refresh()
+    } else {
+      // Confirmation email is enabled — tell the user to check their inbox
+      router.push(`/login?message=Check+your+email+to+confirm+your+account`)
+    }
   }
 
   return (
