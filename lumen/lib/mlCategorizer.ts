@@ -24,7 +24,7 @@ export async function predictCategories(
   if (transactions.length === 0) return []
 
   const baseUrl = process.env.CATEGORIZER_URL ?? DEFAULT_CATEGORIZER_URL
-  const { signal, clear } = timeoutSignal(options.timeoutMs ?? 15000)
+  const { signal, clear } = timeoutSignal(options.timeoutMs ?? 120000)
 
   try {
     const response = await fetch(`${baseUrl.replace(/\/$/, '')}/predict`, {
@@ -80,7 +80,7 @@ export function mapModelCategory(label: string, description: string, amount?: nu
     return 'Health'
   }
 
-  if (/(digital goods|streaming|subscription|recurring|software|spotify|netflix|openai|adobe|github)/.test(text)) {
+  if (/(computer and data|digital goods|streaming|subscription|recurring|software|vpn|spotify|netflix|openai|adobe|github|mullvad)/.test(text)) {
     return 'Subscriptions'
   }
 

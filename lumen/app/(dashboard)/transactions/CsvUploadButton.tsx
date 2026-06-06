@@ -6,12 +6,29 @@ import { Upload } from 'lucide-react'
 import Papa from 'papaparse'
 import { validateColumns, type RevolutRow } from '@/lib/ingester'
 import { clearAnalyticsCache } from '@/lib/analyticsCache'
+import type { IngestResult } from '@/lib/types'
 
 interface Props {
   onUploadSuccess: () => void
 }
 
 type Status = { type: 'success' | 'error'; message: string }
+
+function uploadMessage(result: IngestResult) {
+  const details = []
+  if (result.duplicates > 0) details.push(`${result.duplicates} duplicates skipped`)
+  if ((result.modelCategorized ?? 0) > 0) details.push(`${result.modelCategorized} categorized`)
+  if ((result.recategorizedDuplicates ?? 0) > 0) {
+    details.push(`${result.recategorizedDuplicates} duplicates recategorized`)
+  }
+  if ((result.removedExistingDuplicates ?? 0) > 0) {
+    details.push(`${result.removedExistingDuplicates} old duplicates removed`)
+  }
+
+  return details.length
+    ? `Imported ${result.imported} transactions (${details.join(', ')})`
+    : `Imported ${result.imported} transactions`
+}
 
 export default function CsvUploadButton({ onUploadSuccess }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -41,11 +58,11 @@ export default function CsvUploadButton({ onUploadSuccess }: Props) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ rows: results.data, filename: file.name }),
           })
-          const json = await res.json()
+          const json = (await res.json()) as IngestResult & { error?: string }
           if (!res.ok) throw new Error(json.error ?? 'Upload failed')
           setStatus({
             type: 'success',
-            message: `Imported ${json.imported} transactions (${json.duplicates} duplicates skipped)`,
+            message: uploadMessage(json),
           })
           clearAnalyticsCache()
           onUploadSuccess()

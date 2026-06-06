@@ -110,6 +110,21 @@ export default function UploadModal({ onClose, onSuccess }: Props) {
                   {state.result.duplicates} duplicates skipped
                 </p>
               )}
+              {(state.result.modelCategorized ?? 0) > 0 && (
+                <p className="text-sm text-lumen-muted">
+                  {state.result.modelCategorized} categorized by model
+                </p>
+              )}
+              {(state.result.recategorizedDuplicates ?? 0) > 0 && (
+                <p className="text-sm text-lumen-muted">
+                  {state.result.recategorizedDuplicates} duplicate categories updated
+                </p>
+              )}
+              {(state.result.removedExistingDuplicates ?? 0) > 0 && (
+                <p className="text-sm text-lumen-muted">
+                  {state.result.removedExistingDuplicates} old duplicates removed
+                </p>
+              )}
               {state.result.failed > 0 && (
                 <p className="text-sm text-lumen-danger">
                   {state.result.failed} rows failed

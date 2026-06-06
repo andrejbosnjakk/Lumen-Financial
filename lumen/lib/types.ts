@@ -39,6 +39,9 @@ export type IngestResult = {
   imported: number
   duplicates: number
   failed: number
+  modelCategorized?: number
+  recategorizedDuplicates?: number
+  removedExistingDuplicates?: number
 }
 
 export type AnalyticsData = {
