@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { Download, Store, TrendingDown, TrendingUp, WalletCards } from 'lucide-react'
-import { generatePdfReport } from '@/lib/pdfReport'
 import {
   Bar,
   BarChart,
@@ -129,6 +128,7 @@ export default function AnalyticsPage() {
     if (!data) return
     setExporting(true)
     try {
+      const { generatePdfReport } = await import('@/lib/pdfReport')
       await generatePdfReport(data, period)
     } finally {
       setExporting(false)

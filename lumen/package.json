@@ -6,6 +6,8 @@
     "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
+    "serve": "next start -H 0.0.0.0",
+    "demo": "npm run build && npm run serve",
     "lint": "next lint"
   },
   "dependencies": {

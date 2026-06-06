@@ -15,8 +15,8 @@ const NAV = [
   { href: '/account', label: 'Account', Icon: User },
 ]
 
-function initials(email: string) {
-  const name = email.split('@')[0] || 'user'
+function initials(displayName: string, email: string) {
+  const name = displayName || email.split('@')[0] || 'user'
   return name
     .split(/[._-]/)
     .filter(Boolean)
@@ -25,7 +25,7 @@ function initials(email: string) {
     .join('') || 'LU'
 }
 
-export default function Sidebar({ email }: { email: string }) {
+export default function Sidebar({ email, displayName }: { email: string; displayName: string }) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -42,7 +42,8 @@ export default function Sidebar({ email }: { email: string }) {
       <div className="pointer-events-none absolute bottom-16 right-0 h-44 w-44 rounded-full bg-lumen-success/10 blur-3xl" />
 
       <div className="relative z-10 flex justify-center px-2 pb-8 pt-1 sm:justify-start">
-        <LumenLogo size={31} iconOnly={false} className="[&>span]:hidden sm:[&>span]:inline" />
+        <LumenLogo size={31} iconOnly className="sm:hidden" />
+        <LumenLogo size={31} className="hidden sm:block" />
       </div>
 
       <nav className="relative z-10 flex-1 space-y-1.5">
@@ -83,10 +84,10 @@ export default function Sidebar({ email }: { email: string }) {
       <div className="relative z-10 mt-2 rounded-[24px] border border-white/[0.08] bg-white/[0.04] p-3">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-lumen-accent text-sm font-bold text-white shadow-accent-glow-sm">
-            {initials(email)}
+            {initials(displayName, email)}
           </div>
           <div className="hidden min-w-0 sm:block">
-            <p className="truncate text-sm font-semibold text-lumen-text">Personal vault</p>
+            <p className="truncate text-sm font-semibold text-lumen-text">{displayName}</p>
             <p className="truncate text-xs text-lumen-muted">{email}</p>
           </div>
         </div>

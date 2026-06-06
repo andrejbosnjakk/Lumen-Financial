@@ -8,9 +8,21 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   if (!user) redirect('/login')
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('first_name, last_name')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  const displayName = [profile?.first_name, profile?.last_name]
+    .filter(Boolean)
+    .join(' ')
+    || user.email?.split('@')[0]
+    || 'Lumen user'
+
   return (
     <div className="flex h-screen overflow-hidden bg-lumen-bg">
-      <Sidebar email={user.email ?? ''} />
+      <Sidebar email={user.email ?? ''} displayName={displayName} />
       <main className="relative flex-1 overflow-y-auto">
         <div
           className="pointer-events-none absolute inset-0"
