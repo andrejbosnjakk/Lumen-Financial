@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { generatePdfReport } from '@/lib/pdfReport'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, Legend, CartesianGrid,
@@ -87,6 +88,17 @@ export default function AnalyticsPage() {
   const [period, setPeriod] = useState<Period>('month')
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [exporting, setExporting] = useState(false)
+
+  async function handleExport() {
+    if (!data) return
+    setExporting(true)
+    try {
+      await generatePdfReport(data, period)
+    } finally {
+      setExporting(false)
+    }
+  }
 
   useEffect(() => {
     const granularity = getGranularity(period)
@@ -137,7 +149,18 @@ export default function AnalyticsPage() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-semibold text-gray-900">Analytics</h1>
 
-        <div className="flex rounded-lg border border-gray-200 overflow-hidden bg-white">
+        <div className="flex items-center gap-3">
+          {data && data.totalIncome + data.totalExpenses > 0 && (
+            <button
+              onClick={handleExport}
+              disabled={exporting}
+              className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg bg-white text-gray-500 hover:text-gray-900 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            >
+              {exporting ? 'Exporting…' : '↓ Export PDF'}
+            </button>
+          )}
+
+          <div className="flex rounded-lg border border-gray-200 overflow-hidden bg-white">
           {PERIODS.map(({ key, label }, i) => (
             <button
               key={key}
@@ -153,6 +176,7 @@ export default function AnalyticsPage() {
               {label}
             </button>
           ))}
+          </div>
         </div>
       </div>
 

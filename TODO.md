@@ -38,7 +38,7 @@
   CREATE POLICY "user owns profile" ON profiles
     FOR ALL USING (auth.uid() = id);
   ```
-- [ ] **Import history** — list past import batches with filename, date, counts on Account page
+- [x] **Import history** — table on Account page showing filename, imported count, duplicates, date; queries `import_batches` ordered by recency
 - [ ] **AI financial insights** — call Claude API with aggregated spend data to generate 2-3 personalised advice bullets; show on dashboard home below summary cards
 - [ ] **Month/date range filter** — transactions page already has per-column date range; still needed on analytics route (`?month=YYYY-MM`) and dashboard home
 - [ ] **Demo mode** — seed a sample dataset so judges can try the app without a real Revolut CSV
@@ -60,4 +60,4 @@
 
 ### Reach / Differentiators
 - [ ] **Multi-bank CSV support** — add column mappings for ING, ABN AMRO, Rabobank; auto-detect bank from headers; same categorization pipeline after parsing
-- [ ] **Export as PDF report** — monthly summary PDF: balance, income/expenses breakdown, top categories, top merchants; useful for self-employed / expense reports
+- [x] **Export as PDF report** — "↓ Export PDF" button on analytics page; `lib/pdfReport.ts` uses `jspdf` + `jspdf-autotable`; includes dark header, summary totals, spending by category with % share, top merchants table, page footer; dynamically imported to keep jsPDF out of SSR bundle; filename includes period + date
