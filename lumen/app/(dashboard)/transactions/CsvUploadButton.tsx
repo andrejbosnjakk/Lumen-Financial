@@ -3,6 +3,7 @@
 import { useRef, useState, useCallback } from 'react'
 import Papa from 'papaparse'
 import { validateColumns, type RevolutRow } from '@/lib/ingester'
+import { clearAnalyticsCache } from '@/lib/analyticsCache'
 
 interface Props {
   onUploadSuccess: () => void
@@ -44,6 +45,7 @@ export default function CsvUploadButton({ onUploadSuccess }: Props) {
             type: 'success',
             message: `Imported ${json.imported} transactions (${json.duplicates} duplicates skipped)`,
           })
+          clearAnalyticsCache()
           onUploadSuccess()
         } catch (err: unknown) {
           setStatus({ type: 'error', message: err instanceof Error ? err.message : 'Upload failed' })

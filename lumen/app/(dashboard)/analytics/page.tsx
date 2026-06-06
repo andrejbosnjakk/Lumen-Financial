@@ -1,8 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts'
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, LineChart, Line, Legend, CartesianGrid,
+} from 'recharts'
 import type { AnalyticsData } from '@/lib/types'
+import { getCachedAnalytics, setCachedAnalytics } from '@/lib/analyticsCache'
 
 const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#ec4899', '#14b8a6', '#a3e635']
 
@@ -10,26 +14,117 @@ function fmt(n: number) {
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(n)
 }
 
-function getCurrentMonth() {
-  return new Date().toISOString().slice(0, 7)
+type Period = 'week' | 'month' | '3months' | 'year' | 'all'
+type Granularity = 'day' | 'week' | 'month'
+
+const PERIODS: { key: Period; label: string }[] = [
+  { key: 'week',    label: 'Week' },
+  { key: 'month',   label: 'Month' },
+  { key: '3months', label: '3 Months' },
+  { key: 'year',    label: 'Year' },
+  { key: 'all',     label: 'All time' },
+]
+
+function toISO(d: Date) {
+  return d.toISOString().split('T')[0]
+}
+
+function getDateRange(period: Period): { from: string; to: string } | null {
+  if (period === 'all') return null
+  const today = new Date()
+  const to = toISO(today)
+  switch (period) {
+    case 'week': {
+      const day = today.getDay()
+      const mon = new Date(today)
+      mon.setDate(today.getDate() - (day === 0 ? 6 : day - 1))
+      return { from: toISO(mon), to }
+    }
+    case 'month':
+      return { from: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`, to }
+    case '3months': {
+      const from = new Date(today)
+      from.setMonth(today.getMonth() - 3)
+      return { from: toISO(from), to }
+    }
+    case 'year':
+      return { from: `${today.getFullYear()}-01-01`, to }
+  }
+}
+
+function getGranularity(period: Period): Granularity {
+  if (period === 'week' || period === 'month') return 'day'
+  if (period === '3months') return 'week'
+  return 'month'
+}
+
+// Format a period key for X-axis display
+function formatTick(key: string, granularity: Granularity, period: Period): string {
+  if (granularity === 'month') {
+    const [y, m] = key.split('-')
+    return new Date(Number(y), Number(m) - 1).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' })
+  }
+  // key is YYYY-MM-DD for day and week granularity
+  const d = new Date(key + 'T12:00:00')
+  if (granularity === 'week') {
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+  }
+  // day granularity
+  if (period === 'week') {
+    return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric' })
+  }
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+}
+
+// How many X-axis ticks to skip so labels don't overlap
+function xInterval(dataLen: number): number {
+  if (dataLen <= 10) return 0
+  if (dataLen <= 16) return 1
+  return Math.ceil(dataLen / 8) - 1
 }
 
 export default function AnalyticsPage() {
-  const [month, setMonth] = useState('')
+  const [period, setPeriod] = useState<Period>('month')
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const granularity = getGranularity(period)
+    const range = getDateRange(period)
+    const cacheKey = `${range ? `${range.from}_${range.to}` : 'all'}_${granularity}`
+
+    const cached = getCachedAnalytics(cacheKey)
+    if (cached) {
+      setData(cached)
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
-    const params = month ? `?month=${month}` : ''
-    fetch(`/api/analytics${params}`)
+    const params = new URLSearchParams({ granularity })
+    if (range) {
+      params.set('from', range.from)
+      params.set('to', range.to)
+    }
+
+    fetch(`/api/analytics?${params}`)
       .then((r) => r.json())
-      .then((d) => { setData(d); setLoading(false) })
+      .then((d) => {
+        setData(d)
+        setCachedAnalytics(cacheKey, d)
+        setLoading(false)
+      })
       .catch(() => setLoading(false))
-  }, [month])
+  }, [period])
+
+  const granularity = getGranularity(period)
+  const tickFormatter = (key: string) => formatTick(key, granularity, period)
+  const interval = xInterval(data?.byMonth.length ?? 0)
 
   const categoryData = data
-    ? Object.entries(data.byCategory).map(([name, value]) => ({ name, value: Math.round(value * 100) / 100 })).sort((a, b) => b.value - a.value)
+    ? Object.entries(data.byCategory)
+        .map(([name, value]) => ({ name, value: Math.round(value * 100) / 100 }))
+        .sort((a, b) => b.value - a.value)
     : []
 
   const savingsData = data?.byMonth.map((m) => ({
@@ -41,18 +136,23 @@ export default function AnalyticsPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-semibold text-gray-900">Analytics</h1>
-        <div className="flex items-center gap-3">
-          <input
-            type="month"
-            value={month}
-            onChange={(e) => setMonth(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-300"
-          />
-          {month && (
-            <button onClick={() => setMonth('')} className="text-sm text-gray-400 hover:text-gray-700">
-              All time
+
+        <div className="flex rounded-lg border border-gray-200 overflow-hidden bg-white">
+          {PERIODS.map(({ key, label }, i) => (
+            <button
+              key={key}
+              onClick={() => setPeriod(key)}
+              className={`px-3 py-1.5 text-sm transition-colors ${
+                i < PERIODS.length - 1 ? 'border-r border-gray-200' : ''
+              } ${
+                period === key
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              {label}
             </button>
-          )}
+          ))}
         </div>
       </div>
 
@@ -60,16 +160,16 @@ export default function AnalyticsPage() {
         <div className="text-center py-24 text-sm text-gray-400">Loading…</div>
       ) : !data || data.totalIncome + data.totalExpenses === 0 ? (
         <div className="rounded-xl border-2 border-dashed border-gray-200 p-16 text-center">
-          <p className="text-gray-400 text-sm">No data for this period — upload a CSV first</p>
+          <p className="text-gray-400 text-sm">No data for this period — upload a CSV or try a wider range</p>
         </div>
       ) : (
         <div className="space-y-6">
           {/* Summary stats */}
           <div className="grid grid-cols-3 gap-4">
             {[
-              { label: 'Income', value: fmt(data.totalIncome), color: 'text-emerald-600' },
-              { label: 'Expenses', value: fmt(data.totalExpenses), color: 'text-gray-900' },
-              { label: 'Net Savings', value: fmt(data.netSavings), color: data.netSavings >= 0 ? 'text-emerald-600' : 'text-red-500' },
+              { label: 'Income',      value: fmt(data.totalIncome),   color: 'text-emerald-600' },
+              { label: 'Expenses',    value: fmt(data.totalExpenses),  color: 'text-gray-900' },
+              { label: 'Net Savings', value: fmt(data.netSavings),     color: data.netSavings >= 0 ? 'text-emerald-600' : 'text-red-500' },
             ].map(({ label, value, color }) => (
               <div key={label} className="bg-white rounded-xl border border-gray-200 p-5">
                 <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">{label}</p>
@@ -78,17 +178,34 @@ export default function AnalyticsPage() {
             ))}
           </div>
 
-          {/* Income vs Expenses bar chart */}
+          {/* Income vs Expenses */}
           {data.byMonth.length > 0 && (
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <h2 className="text-sm font-semibold text-gray-900 mb-4">Income vs Expenses</h2>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={data.byMonth} barCategoryGap="30%">
-                  <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `€${v}`} />
-                  <Tooltip formatter={(v) => fmt(Number(v))} />
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={data.byMonth} barCategoryGap="25%">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
+                  <XAxis
+                    dataKey="month"
+                    tickFormatter={tickFormatter}
+                    interval={interval}
+                    tick={{ fontSize: 11, fill: '#9ca3af' }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: '#9ca3af' }}
+                    tickFormatter={(v) => `€${v}`}
+                    axisLine={false}
+                    tickLine={false}
+                    width={55}
+                  />
+                  <Tooltip
+                    formatter={(v) => fmt(Number(v))}
+                    labelFormatter={(key) => formatTick(String(key), granularity, period)}
+                  />
                   <Legend />
-                  <Bar dataKey="income" name="Income" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="income"   name="Income"   fill="#22c55e" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="expenses" name="Expenses" fill="#6366f1" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -100,9 +217,18 @@ export default function AnalyticsPage() {
             {categoryData.length > 0 && (
               <div className="bg-white rounded-xl border border-gray-200 p-5">
                 <h2 className="text-sm font-semibold text-gray-900 mb-4">Spending by Category</h2>
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
-                    <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={2}>
+                    <Pie
+                      data={categoryData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={85}
+                      paddingAngle={2}
+                    >
                       {categoryData.map((_, i) => (
                         <Cell key={i} fill={COLORS[i % COLORS.length]} />
                       ))}
@@ -118,12 +244,37 @@ export default function AnalyticsPage() {
             {savingsData.length > 0 && (
               <div className="bg-white rounded-xl border border-gray-200 p-5">
                 <h2 className="text-sm font-semibold text-gray-900 mb-4">Net Savings Trend</h2>
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="100%" height={240}>
                   <LineChart data={savingsData}>
-                    <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `€${v}`} />
-                    <Tooltip formatter={(v) => fmt(Number(v))} />
-                    <Line type="monotone" dataKey="savings" name="Net Savings" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
+                    <XAxis
+                      dataKey="month"
+                      tickFormatter={tickFormatter}
+                      interval={interval}
+                      tick={{ fontSize: 11, fill: '#9ca3af' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11, fill: '#9ca3af' }}
+                      tickFormatter={(v) => `€${v}`}
+                      axisLine={false}
+                      tickLine={false}
+                      width={55}
+                    />
+                    <Tooltip
+                      formatter={(v) => fmt(Number(v))}
+                      labelFormatter={(key) => formatTick(String(key), granularity, period)}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="savings"
+                      name="Net Savings"
+                      stroke="#6366f1"
+                      strokeWidth={2}
+                      dot={savingsData.length <= 14 ? { r: 3, fill: '#6366f1' } : false}
+                      activeDot={{ r: 4 }}
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               </div>

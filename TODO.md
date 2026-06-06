@@ -11,7 +11,7 @@
 - [x] **Dashboard home — summary cards** — queries DB directly (server component); shows current balance card + this month income/expenses/net; empty state links to transactions page
 - [x] **`/api/analytics` route** — implemented: totalIncome, totalExpenses, netSavings, byCategory, byMonth, topMerchants, recurring detection (2+ months); optional `?month=YYYY-MM` filter
 - [x] **Transactions page** — implemented: paginated table with search (debounced), category filter, date range, optimistic category correction, CSV upload button
-- [ ] **Analytics page** — spending by category (pie or bar chart with Recharts), monthly income vs expenses (line/bar), top merchants table
+- [x] **Analytics page** — donut (spending by category), bar chart (monthly income vs expenses), net savings line chart, top merchants table; period selector (Week / Month / 3 Months / Year / All time); analytics cache (`lib/analyticsCache.ts`) with 5-min TTL keyed per date range, cleared on CSV upload
 - [ ] **Python microservice** — FastAPI service that accepts `[{description, amount, type}]` and returns categories; called as fallback for `Uncategorized` hits from the rule-based pass; deploy on VPS
 
 ## P2 — Key differentiators (demo-quality, judging criteria)

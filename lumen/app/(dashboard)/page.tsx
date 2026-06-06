@@ -20,7 +20,14 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser()
 
   const greeting = getGreeting()
-  const name = user?.email?.split('@')[0] ?? 'there'
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('first_name')
+    .eq('id', user!.id)
+    .maybeSingle()
+
+  const name = profile?.first_name || user?.email?.split('@')[0] || 'there'
 
   // Check if any transactions exist
   const { count } = await supabase
