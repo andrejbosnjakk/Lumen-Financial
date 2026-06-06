@@ -87,8 +87,8 @@ export async function GET() {
   const now = Date.now()
   const subscriptions: Subscription[] = []
 
-  for (const charges of groups.values()) {
-    const sorted = charges.sort((a, b) => a.date.localeCompare(b.date))
+  for (const charges of Array.from(groups.values())) {
+    const sorted = charges.sort((a: { date: string }, b: { date: string }) => a.date.localeCompare(b.date))
     const amounts = sorted.map(c => c.amount)
 
     // Amounts must be very consistent — subscriptions rarely change price (5% tolerance)
@@ -118,7 +118,7 @@ export async function GET() {
     const staleDays = (now - lastDate) / 86_400_000
     if (staleDays > MAX_STALE_DAYS[freq]) continue
 
-    const avgAmount = amounts.reduce((a, b) => a + b, 0) / amounts.length
+    const avgAmount = amounts.reduce((a: number, b: number) => a + b, 0) / amounts.length
 
     subscriptions.push({
       description: sorted[sorted.length - 1].description,

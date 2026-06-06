@@ -90,5 +90,33 @@
   CREATE POLICY "user owns connection" ON brokerage_connections
     FOR ALL USING (auth.uid() = user_id);
   ```
-- [ ] **Multi-bank CSV support** — add column mappings for ING, ABN AMRO, Rabobank; auto-detect bank from headers; same categorization pipeline after parsing
+- [x] **Multi-bank CSV support** — add column mappings for ING, ABN AMRO, Rabobank; auto-detect bank from headers; same categorization pipeline after parsing
+- [x] **IBKR & DEGIRO CSV import** — parsers for IBKR Activity Statement (Open Positions + Trades fallback) and DEGIRO Transacties/Rekeningafschrift CSVs; ISIN-based Yahoo Finance ticker resolution for DEGIRO; currency-hint symbol mapping for IBKR; positions stored in `broker_imports` + `broker_positions` tables; portfolio view with LIVE/STMT/COST price-source badges; re-upload and remove; **requires Supabase migration:**
+  ```sql
+  CREATE TABLE broker_imports (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    broker TEXT NOT NULL,
+    filename TEXT,
+    imported_at TIMESTAMPTZ DEFAULT NOW()
+  );
+  CREATE TABLE broker_positions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    import_id UUID REFERENCES broker_imports(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    broker TEXT NOT NULL,
+    symbol TEXT NOT NULL,
+    isin TEXT,
+    name TEXT,
+    quantity NUMERIC(18,6) NOT NULL,
+    avg_cost NUMERIC(18,6),
+    statement_price NUMERIC(18,6),
+    yahoo_ticker TEXT,
+    currency TEXT DEFAULT 'EUR'
+  );
+  ALTER TABLE broker_imports ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE broker_positions ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "user owns broker imports" ON broker_imports FOR ALL USING (auth.uid() = user_id);
+  CREATE POLICY "user owns broker positions" ON broker_positions FOR ALL USING (auth.uid() = user_id);
+  ```
 - [x] **Export as PDF report** — "↓ Export PDF" button on analytics page; `lib/pdfReport.ts` uses `jspdf` + `jspdf-autotable`; includes dark header, summary totals, spending by category with % share, top merchants table, page footer; dynamically imported to keep jsPDF out of SSR bundle; filename includes period + date
