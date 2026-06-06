@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useCallback } from 'react'
 import Papa from 'papaparse'
 import { validateColumns, type RevolutRow } from '@/lib/ingester'
 
@@ -13,14 +13,15 @@ type Status = { type: 'success' | 'error'; message: string }
 export default function CsvUploadButton({ onUploadSuccess }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
   const [status, setStatus] = useState<Status | null>(null)
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    e.target.value = ''
+  const processFile = useCallback(async (file: File) => {
     setStatus(null)
-
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      setStatus({ type: 'error', message: 'File must be a .csv' })
+      return
+    }
     Papa.parse<RevolutRow>(file, {
       header: true,
       skipEmptyLines: true,
@@ -30,7 +31,6 @@ export default function CsvUploadButton({ onUploadSuccess }: Props) {
           setStatus({ type: 'error', message: 'Invalid CSV — missing required Revolut columns.' })
           return
         }
-
         setUploading(true)
         try {
           const res = await fetch('/api/transactions/ingest', {
@@ -46,15 +46,26 @@ export default function CsvUploadButton({ onUploadSuccess }: Props) {
           })
           onUploadSuccess()
         } catch (err: unknown) {
-          setStatus({
-            type: 'error',
-            message: err instanceof Error ? err.message : 'Upload failed',
-          })
+          setStatus({ type: 'error', message: err instanceof Error ? err.message : 'Upload failed' })
         } finally {
           setUploading(false)
         }
       },
     })
+  }, [onUploadSuccess])
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setDragOver(false)
+    const file = e.dataTransfer.files[0]
+    if (file) processFile(file)
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    processFile(file)
   }
 
   return (
@@ -62,10 +73,17 @@ export default function CsvUploadButton({ onUploadSuccess }: Props) {
       <input ref={inputRef} type="file" accept=".csv" onChange={handleFileChange} className="hidden" />
       <button
         onClick={() => inputRef.current?.click()}
+        onDrop={handleDrop}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+        onDragLeave={() => setDragOver(false)}
         disabled={uploading}
-        className="px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
+        className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 ${
+          dragOver
+            ? 'bg-gray-700 text-white ring-2 ring-gray-400 ring-offset-1'
+            : 'bg-gray-900 text-white hover:bg-gray-700'
+        }`}
       >
-        {uploading ? 'Uploading…' : '↑ Upload CSV'}
+        {uploading ? 'Uploading…' : dragOver ? 'Drop to upload' : '↑ Upload CSV'}
       </button>
       {status && (
         <p className={`text-xs ${status.type === 'success' ? 'text-emerald-600' : 'text-red-500'}`}>

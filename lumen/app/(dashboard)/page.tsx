@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import DashboardUploadZone from './DashboardUploadZone'
 
 function fmt(amount: number, currency = 'EUR') {
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency }).format(amount)
@@ -34,15 +35,7 @@ export default async function DashboardPage() {
           {greeting}, {name}
         </h1>
         <p className="text-sm text-gray-500 mb-8">Here&apos;s your financial overview</p>
-        <div className="rounded-xl border-2 border-dashed border-gray-200 p-12 text-center">
-          <p className="text-gray-400 text-sm mb-3">No transactions yet</p>
-          <Link
-            href="/transactions"
-            className="text-sm font-medium text-gray-900 underline underline-offset-2"
-          >
-            Upload your first CSV →
-          </Link>
-        </div>
+        <DashboardUploadZone />
       </div>
     )
   }
