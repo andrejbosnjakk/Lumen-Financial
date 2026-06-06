@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import ChangePasswordForm from './ChangePasswordForm'
+import ProfileForm from './ProfileForm'
+import type { Profile } from '@/lib/types'
 
 function fmt(date: string) {
   return new Date(date).toLocaleDateString('nl-NL', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -8,6 +10,12 @@ function fmt(date: string) {
 export default async function AccountPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user!.id)
+    .maybeSingle()
 
   const { data: batches } = await supabase
     .from('import_batches')
@@ -20,13 +28,10 @@ export default async function AccountPage() {
       <h1 className="text-2xl font-semibold text-gray-900">Account</h1>
 
       {/* Profile */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-        <h2 className="text-sm font-semibold text-gray-900">Profile</h2>
-        <div>
-          <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Email</p>
-          <p className="text-sm text-gray-900">{user?.email}</p>
-        </div>
-      </div>
+      <ProfileForm
+        initialProfile={profile as Profile | null}
+        email={user?.email ?? ''}
+      />
 
       {/* Change password */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">

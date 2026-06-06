@@ -51,6 +51,15 @@ export type AnalyticsData = {
   recurring: Transaction[]
 }
 
+export type Profile = {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  phone: string | null
+  date_of_birth: string | null
+  updated_at: string
+}
+
 export const CATEGORIES = [
   'Groceries',
   'Transport',

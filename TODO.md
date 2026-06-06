@@ -24,6 +24,21 @@
 
 ## P3 — Polish (time permitting)
 
+- [x] **User profile** — `profiles` table (first_name, last_name, phone, date_of_birth); account page shows avatar with initials, editable form, email read-only; `GET/PATCH /api/profile` with upsert; **requires Supabase migration:**
+  ```sql
+  CREATE TABLE profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    first_name TEXT,
+    last_name TEXT,
+    phone TEXT,
+    date_of_birth DATE,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+  );
+  ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+  CREATE POLICY "user owns profile" ON profiles
+    FOR ALL USING (auth.uid() = id);
+  ```
+
 - [ ] **Import history** — list past import batches with filename, date, counts on Account page
 - [ ] **AI financial insights** — call Claude API with aggregated spend data to generate 2-3 personalised advice bullets; show on dashboard home below summary cards
 - [ ] **Month/date range filter** — transactions page already has per-column date range; still needed on analytics route (`?month=YYYY-MM`) and dashboard home
