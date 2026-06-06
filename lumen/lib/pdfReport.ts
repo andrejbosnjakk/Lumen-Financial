@@ -1,7 +1,4 @@
-import type { AnalyticsData } from './types'
-import type { Subscription, ZombieSubscription } from '@/app/api/subscriptions/route'
-import type { Insight } from '@/app/api/insights/route'
-import type { AgeComparison } from '@/app/api/insights/age/route'
+import type { AnalyticsData, Subscription, ZombieSubscription, Insight, AgeComparison } from './types'
 
 type Period = 'week' | 'month' | '3months' | 'year' | 'all'
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Users } from 'lucide-react'
-import type { AgeComparison } from '@/app/api/insights/age/route'
+import type { AgeComparison } from '@/lib/types'
 
 const AGE_GROUPS = ['18-24', '25-34', '35-44', '45-54', '55-64', '65-74', '75+']
 const STORAGE_KEY = 'lumen_age_group'

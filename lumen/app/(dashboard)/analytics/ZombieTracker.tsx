@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Ghost, Loader2 } from 'lucide-react'
-import type { ZombieSubscription, Frequency } from '@/app/api/subscriptions/route'
+import type { ZombieSubscription, Frequency } from '@/lib/types'
 
 const FREQ_LABEL: Record<Frequency, string> = {
   weekly: 'Weekly', monthly: 'Monthly', quarterly: 'Quarterly', yearly: 'Yearly',

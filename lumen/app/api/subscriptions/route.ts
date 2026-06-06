@@ -1,21 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import type { Frequency, Subscription, ZombieSubscription } from '@/lib/types'
 
-export type Frequency = 'weekly' | 'monthly' | 'quarterly' | 'yearly'
-
-export type Subscription = {
-  description: string
-  amount: number
-  frequency: Frequency
-  monthlyEquivalent: number
-  lastCharge: string
-  count: number
-}
-
-export type ZombieSubscription = Subscription & {
-  staleDays: number
-  zombieReason: 'overdue' | 'forgotten'
-}
+export type { Frequency, Subscription, ZombieSubscription }
 
 // Minimum number of observed charges before we trust a pattern.
 // 2 data points = 1 gap = zero ability to distinguish pattern from coincidence.

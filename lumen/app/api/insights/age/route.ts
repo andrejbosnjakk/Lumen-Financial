@@ -2,14 +2,9 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { readFileSync } from 'fs'
 import { join } from 'path'
+import type { AgeComparison } from '@/lib/types'
 
-export type AgeComparison = {
-  category: string
-  userMonthly: number
-  benchmarkMonthly: number
-  ratio: number         // user / benchmark — >1 means spending more than peers
-  direction: 'over' | 'under' | 'on-par'
-}
+export type { AgeComparison }
 
 const VALID_AGE_GROUPS = ['18-24', '25-34', '35-44', '45-54', '55-64', '65-74', '75+']
 

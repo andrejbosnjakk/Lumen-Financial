@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { CalendarCheck, Loader2, Repeat2 } from 'lucide-react'
-import type { Subscription, Frequency } from '@/app/api/subscriptions/route'
+import type { Subscription, Frequency } from '@/lib/types'
 
 const FREQ_LABEL: Record<Frequency, string> = {
   weekly:    'Weekly',
