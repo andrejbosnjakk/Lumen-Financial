@@ -6,6 +6,7 @@ import FilterBar from './FilterBar'
 import TransactionRow from './TransactionRow'
 import Pagination from './Pagination'
 import CsvUploadButton from './CsvUploadButton'
+import EditModal from './EditModal'
 
 const PAGE_SIZE = 50
 
@@ -21,6 +22,7 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [savingId, setSavingId] = useState<string | null>(null)
+  const [editingTx, setEditingTx] = useState<Transaction | null>(null)
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -87,6 +89,32 @@ export default function TransactionsPage() {
     }
   }
 
+  async function handleDelete(id: string) {
+    setTransactions((ts) => ts.filter((t) => t.id !== id))
+    setCount((c) => c - 1)
+
+    try {
+      const res = await fetch(`/api/transactions/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error()
+    } catch {
+      // Revert by refetching
+      fetchTransactions()
+    }
+  }
+
+  async function handleEditSave(id: string, updates: Partial<Transaction>) {
+    const res = await fetch(`/api/transactions/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    })
+    const json = await res.json()
+    if (!res.ok) throw new Error(json.error ?? 'Failed to update')
+
+    setTransactions((ts) => ts.map((t) => (t.id === id ? { ...t, ...json.data } : t)))
+    setEditingTx(null)
+  }
+
   const hasActiveFilters = debouncedSearch || category || dateFrom || dateTo
 
   return (
@@ -134,6 +162,7 @@ export default function TransactionsPage() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Type</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Category</th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Amount</th>
+                <th className="px-4 py-3 w-20" />
               </tr>
             </thead>
             <tbody>
@@ -143,6 +172,8 @@ export default function TransactionsPage() {
                   transaction={tx}
                   saving={savingId === tx.id}
                   onCategoryChange={handleCategoryChange}
+                  onEdit={setEditingTx}
+                  onDelete={handleDelete}
                 />
               ))}
             </tbody>
@@ -156,6 +187,14 @@ export default function TransactionsPage() {
         count={count}
         onPageChange={setPage}
       />
+
+      {editingTx && (
+        <EditModal
+          transaction={editingTx}
+          onSave={handleEditSave}
+          onClose={() => setEditingTx(null)}
+        />
+      )}
     </div>
   )
 }
