@@ -97,6 +97,44 @@ export type PortfolioData = {
   accountType: 'live' | 'demo'
 }
 
+// ── Subscriptions ────────────────────────────────────────────────────────────
+export type Frequency = 'weekly' | 'monthly' | 'quarterly' | 'yearly'
+
+export type Subscription = {
+  description: string
+  amount: number
+  frequency: Frequency
+  monthlyEquivalent: number
+  lastCharge: string
+  count: number
+}
+
+export type ZombieSubscription = Subscription & {
+  staleDays: number
+  zombieReason: 'overdue' | 'forgotten'
+}
+
+// ── Insights ─────────────────────────────────────────────────────────────────
+export type InsightType = 'velocity' | 'anomaly' | 'recurring' | 'savings' | 'pattern' | 'largest'
+export type InsightTone = 'neutral' | 'positive' | 'warning' | 'danger'
+
+export type Insight = {
+  type: InsightType
+  title: string
+  body: string
+  tone: InsightTone
+  value?: string
+}
+
+// ── Age comparison ────────────────────────────────────────────────────────────
+export type AgeComparison = {
+  category: string
+  userMonthly: number
+  benchmarkMonthly: number
+  ratio: number
+  direction: 'over' | 'under' | 'on-par'
+}
+
 export const CATEGORIES = [
   'Groceries',
   'Transport',

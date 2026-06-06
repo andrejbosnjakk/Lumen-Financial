@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { AlertTriangle, ArrowUpRight, CalendarDays, RefreshCw, TrendingUp, Zap } from 'lucide-react'
-import type { Insight } from '@/app/api/insights/route'
+import type { Insight } from '@/lib/types'
 
 const ICON: Record<Insight['type'], React.ElementType> = {
   velocity: Zap,

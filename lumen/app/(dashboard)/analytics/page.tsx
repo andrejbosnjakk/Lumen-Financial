@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { Download, Store, TrendingDown, TrendingUp, WalletCards } from 'lucide-react'
 import FinancialChat from './FinancialChat'
 import SubscriptionTracker from './SubscriptionTracker'
+import ZombieTracker from './ZombieTracker'
+import AgeComparison from './AgeComparison'
 import {
   Bar,
   BarChart,
@@ -125,6 +127,7 @@ export default function AnalyticsPage() {
   const [period, setPeriod] = useState<Period>('month')
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [exporting, setExporting] = useState(false)
 
   async function handleExport() {
@@ -132,7 +135,22 @@ export default function AnalyticsPage() {
     setExporting(true)
     try {
       const { generatePdfReport } = await import('@/lib/pdfReport')
-      await generatePdfReport(data, period)
+
+      // Fetch supplemental data in parallel for the PDF
+      const ageGroup = localStorage.getItem('lumen_age_group') ?? ''
+      const [subsRes, insightsRes, ageRes] = await Promise.all([
+        fetch('/api/subscriptions').then(r => r.json()).catch(() => ({})),
+        fetch('/api/insights').then(r => r.json()).catch(() => ({})),
+        ageGroup ? fetch(`/api/insights/age?ageGroup=${encodeURIComponent(ageGroup)}`).then(r => r.json()).catch(() => ({})) : Promise.resolve({}),
+      ])
+
+      await generatePdfReport(data, period, {
+        subscriptions: subsRes.subscriptions ?? [],
+        zombies: subsRes.zombies ?? [],
+        insights: insightsRes.insights ?? [],
+        ageComparisons: ageRes.comparisons ?? [],
+        ageGroup: ageGroup || undefined,
+      })
     } finally {
       setExporting(false)
     }
@@ -144,27 +162,59 @@ export default function AnalyticsPage() {
     const cacheKey = `${range ? `${range.from}_${range.to}` : 'all'}_${granularity}`
 
     const cached = getCachedAnalytics(cacheKey)
-    if (cached) {
+    if (cached && Array.isArray(cached.byMonth) && cached.byCategory && Array.isArray(cached.topMerchants)) {
       setData(cached)
       setLoading(false)
       return
     }
 
+    const controller = new AbortController()
+    const timeout = window.setTimeout(() => controller.abort(), 12000)
+
     setLoading(true)
+    setError(null)
+    setData(null)
     const params = new URLSearchParams({ granularity })
     if (range) {
       params.set('from', range.from)
       params.set('to', range.to)
     }
 
-    fetch(`/api/analytics?${params}`)
-      .then((r) => r.json())
+    fetch(`/api/analytics?${params}`, {
+      credentials: 'same-origin',
+      cache: 'no-store',
+      signal: controller.signal,
+    })
+      .then(async (r) => {
+        const contentType = r.headers.get('content-type') ?? ''
+        if (!r.ok) {
+          if (r.status === 401) throw new Error('Your session expired. Sign in again to view analytics.')
+          throw new Error(`Analytics request failed (${r.status})`)
+        }
+        if (!contentType.includes('application/json')) {
+          throw new Error('Analytics returned a non-JSON response.')
+        }
+        return r.json()
+      })
       .then((d) => {
+        if (!Array.isArray(d.byMonth) || !d.byCategory || !Array.isArray(d.topMerchants)) {
+          throw new Error(d.error ?? 'Analytics returned an unexpected response.')
+        }
         setData(d)
         setCachedAnalytics(cacheKey, d)
+      })
+      .catch((err: unknown) => {
+        setError(err instanceof Error ? err.message : 'Failed to load analytics.')
+      })
+      .finally(() => {
+        window.clearTimeout(timeout)
         setLoading(false)
       })
-      .catch(() => setLoading(false))
+
+    return () => {
+      window.clearTimeout(timeout)
+      controller.abort()
+    }
   }, [period])
 
   const granularity = getGranularity(period)
@@ -224,6 +274,11 @@ export default function AnalyticsPage() {
       {loading ? (
         <div className="lumen-panel flex min-h-[420px] items-center justify-center rounded-[28px]">
           <div className="h-7 w-7 animate-spin rounded-full border-2 border-lumen-accent/30 border-t-lumen-accent" />
+        </div>
+      ) : error ? (
+        <div className="lumen-panel rounded-[28px] p-12 text-center">
+          <p className="text-sm font-semibold text-lumen-danger">Analytics failed to load</p>
+          <p className="mt-2 text-sm text-lumen-muted">{error}</p>
         </div>
       ) : !hasData ? (
         <div className="lumen-panel rounded-[28px] p-12 text-center">
@@ -346,6 +401,8 @@ export default function AnalyticsPage() {
           )}
 
           <SubscriptionTracker />
+          <ZombieTracker />
+          <AgeComparison />
           <FinancialChat period={period} />
         </div>
       )}

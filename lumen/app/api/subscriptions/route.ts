@@ -1,16 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import type { Frequency, Subscription, ZombieSubscription } from '@/lib/types'
 
-export type Frequency = 'weekly' | 'monthly' | 'quarterly' | 'yearly'
-
-export type Subscription = {
-  description: string
-  amount: number
-  frequency: Frequency
-  monthlyEquivalent: number
-  lastCharge: string
-  count: number
-}
+export type { Frequency, Subscription, ZombieSubscription }
 
 // Minimum number of observed charges before we trust a pattern.
 // 2 data points = 1 gap = zero ability to distinguish pattern from coincidence.
@@ -28,6 +20,18 @@ const MAX_STALE_DAYS: Record<Frequency, number> = {
   quarterly: 120,
   yearly:    400,
 }
+
+// Expected cycle length in days.
+const CYCLE_DAYS: Record<Frequency, number> = {
+  weekly:    7,
+  monthly:   30,
+  quarterly: 90,
+  yearly:    365,
+}
+
+// Monthly equivalent below which a subscription is "easy to forget" if long-running.
+const FORGOTTEN_THRESHOLD_EUR = 10
+const FORGOTTEN_MIN_MONTHS = 5
 
 const MONTHLY_MULTIPLIER: Record<Frequency, number> = {
   weekly:    52 / 12,
@@ -63,12 +67,19 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: txs } = await supabase
+  const since = new Date()
+  since.setMonth(since.getMonth() - 24)
+
+  const { data: txs, error } = await supabase
     .from('transactions')
     .select('description, amount, completed_date')
     .eq('user_id', user.id)
     .lt('amount', 0)
+    .gte('completed_date', since.toISOString().split('T')[0])
     .order('completed_date', { ascending: true })
+    .limit(5000)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   if (!txs || txs.length === 0) return NextResponse.json({ subscriptions: [] })
 
@@ -86,6 +97,7 @@ export async function GET() {
 
   const now = Date.now()
   const subscriptions: Subscription[] = []
+  const zombies: ZombieSubscription[] = []
 
   for (const charges of Array.from(groups.values())) {
     const sorted = charges.sort((a: { date: string }, b: { date: string }) => a.date.localeCompare(b.date))
@@ -113,24 +125,38 @@ export async function GET() {
     // Gap timing must be consistent (20% CV max — tighter than before)
     if (cv(gaps) > 0.20) continue
 
-    // Skip if the last charge is too old — subscription likely cancelled
     const lastDate = new Date(sorted[sorted.length - 1].date).getTime()
     const staleDays = (now - lastDate) / 86_400_000
-    if (staleDays > MAX_STALE_DAYS[freq]) continue
+
+    // Subscription is completely stale — likely cancelled
+    if (staleDays > MAX_STALE_DAYS[freq] * 1.5) continue
 
     const avgAmount = amounts.reduce((a: number, b: number) => a + b, 0) / amounts.length
+    const monthlyEquivalent = Math.round(avgAmount * MONTHLY_MULTIPLIER[freq] * 100) / 100
 
-    subscriptions.push({
+    const sub: Subscription = {
       description: sorted[sorted.length - 1].description,
       amount: Math.round(avgAmount * 100) / 100,
       frequency: freq,
-      monthlyEquivalent: Math.round(avgAmount * MONTHLY_MULTIPLIER[freq] * 100) / 100,
+      monthlyEquivalent,
       lastCharge: sorted[sorted.length - 1].date,
       count: sorted.length,
-    })
+    }
+
+    const isOverdue = staleDays > CYCLE_DAYS[freq] * 1.15 && staleDays <= MAX_STALE_DAYS[freq]
+    const isForgotten = staleDays <= MAX_STALE_DAYS[freq] && monthlyEquivalent <= FORGOTTEN_THRESHOLD_EUR && sorted.length >= FORGOTTEN_MIN_MONTHS
+
+    if (isOverdue) {
+      zombies.push({ ...sub, staleDays: Math.round(staleDays), zombieReason: 'overdue' })
+    } else if (isForgotten) {
+      zombies.push({ ...sub, staleDays: Math.round(staleDays), zombieReason: 'forgotten' })
+    } else if (staleDays <= MAX_STALE_DAYS[freq]) {
+      subscriptions.push(sub)
+    }
   }
 
   subscriptions.sort((a, b) => b.monthlyEquivalent - a.monthlyEquivalent)
+  zombies.sort((a, b) => b.monthlyEquivalent - a.monthlyEquivalent)
 
-  return NextResponse.json({ subscriptions })
+  return NextResponse.json({ subscriptions, zombies })
 }

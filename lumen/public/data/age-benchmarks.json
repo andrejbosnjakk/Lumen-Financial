@@ -1,0 +1,86 @@
+{
+  "18-24": {
+    "Groceries": 185,
+    "Transport": 78,
+    "Subscriptions": 34,
+    "Housing": 520,
+    "Dining": 135,
+    "Health": 32,
+    "Shopping": 118,
+    "Entertainment": 62,
+    "Utilities": 86,
+    "Other": 95
+  },
+  "25-34": {
+    "Groceries": 255,
+    "Transport": 112,
+    "Subscriptions": 48,
+    "Housing": 890,
+    "Dining": 215,
+    "Health": 48,
+    "Shopping": 176,
+    "Entertainment": 86,
+    "Utilities": 145,
+    "Other": 135
+  },
+  "35-44": {
+    "Groceries": 390,
+    "Transport": 142,
+    "Subscriptions": 56,
+    "Housing": 1120,
+    "Dining": 245,
+    "Health": 72,
+    "Shopping": 210,
+    "Entertainment": 102,
+    "Utilities": 218,
+    "Other": 180
+  },
+  "45-54": {
+    "Groceries": 430,
+    "Transport": 150,
+    "Subscriptions": 52,
+    "Housing": 1060,
+    "Dining": 230,
+    "Health": 88,
+    "Shopping": 205,
+    "Entertainment": 96,
+    "Utilities": 238,
+    "Other": 190
+  },
+  "55-64": {
+    "Groceries": 360,
+    "Transport": 126,
+    "Subscriptions": 45,
+    "Housing": 840,
+    "Dining": 185,
+    "Health": 104,
+    "Shopping": 165,
+    "Entertainment": 82,
+    "Utilities": 230,
+    "Other": 160
+  },
+  "65-74": {
+    "Groceries": 315,
+    "Transport": 92,
+    "Subscriptions": 38,
+    "Housing": 650,
+    "Dining": 138,
+    "Health": 118,
+    "Shopping": 118,
+    "Entertainment": 68,
+    "Utilities": 205,
+    "Other": 132
+  },
+  "75+": {
+    "Groceries": 285,
+    "Transport": 70,
+    "Subscriptions": 30,
+    "Housing": 560,
+    "Dining": 98,
+    "Health": 132,
+    "Shopping": 92,
+    "Entertainment": 54,
+    "Utilities": 190,
+    "Other": 120
+  }
+}

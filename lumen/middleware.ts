@@ -30,8 +30,12 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/signup')
   const isLanding = pathname === '/'
+  const isApiRoute = pathname.startsWith('/api')
 
   if (!user && !isAuthRoute && !isLanding) {
+    if (isApiRoute) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     return NextResponse.redirect(new URL('/login', request.url))
   }
 

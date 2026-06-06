@@ -1,13 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import type { Insight } from '@/lib/types'
 
-export interface Insight {
-  type: 'velocity' | 'anomaly' | 'recurring' | 'savings' | 'pattern' | 'largest'
-  title: string
-  body: string
-  tone: 'neutral' | 'positive' | 'warning' | 'danger'
-  value?: string
-}
+export type { Insight }
 
 export async function GET() {
   const supabase = await createClient()
