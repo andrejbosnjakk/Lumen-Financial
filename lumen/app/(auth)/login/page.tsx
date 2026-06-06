@@ -12,12 +12,14 @@ function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const message = searchParams.get('message')
+  const [mode, setMode] = useState<'login' | 'reset'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [info, setInfo] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
     setLoading(true)
@@ -32,6 +34,22 @@ function LoginForm() {
     router.refresh()
   }
 
+  async function handleReset(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+    const supabase = createClient()
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    setLoading(false)
+    if (error) {
+      setError(error.message)
+    } else {
+      setInfo('Check your email for a password reset link.')
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 18 }}
@@ -44,75 +62,135 @@ function LoginForm() {
       </div>
 
       <div className="lumen-panel rounded-[28px] p-7 sm:p-9">
-        <div className="mb-8">
-          <p className="text-sm font-medium text-lumen-accent">Welcome back</p>
-          <h1 className="mt-2 text-3xl font-semibold text-lumen-text">Sign in to Lumen</h1>
-          <p className="mt-3 text-sm leading-6 text-lumen-muted">
-            Continue with your transactions, categories, and reports.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label htmlFor="email" className="mb-2 block text-sm font-medium text-lumen-text">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="lumen-input px-4 py-3 text-sm placeholder:text-lumen-muted/55"
-              placeholder="you@example.com"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="mb-2 block text-sm font-medium text-lumen-text">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="lumen-input px-4 py-3 text-sm placeholder:text-lumen-muted/55"
-              placeholder="Enter your password"
-            />
-          </div>
-
-          {message && (
-            <div className="rounded-2xl border border-lumen-accent/25 bg-lumen-accent/10 px-4 py-3 text-sm text-lumen-text">
-              {message}
+        {mode === 'login' ? (
+          <>
+            <div className="mb-8">
+              <p className="text-sm font-medium text-lumen-accent">Welcome back</p>
+              <h1 className="mt-2 text-3xl font-semibold text-lumen-text">Sign in to Lumen</h1>
+              <p className="mt-3 text-sm leading-6 text-lumen-muted">
+                Continue with your transactions, categories, and reports.
+              </p>
             </div>
-          )}
-          {error && (
-            <div className="rounded-2xl border border-lumen-danger/25 bg-lumen-danger/10 px-4 py-3 text-sm text-lumen-danger">
-              {error}
+
+            <form onSubmit={handleLogin} className="space-y-5">
+              <div>
+                <label htmlFor="email" className="mb-2 block text-sm font-medium text-lumen-text">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="lumen-input px-4 py-3 text-sm placeholder:text-lumen-muted/55"
+                  placeholder="you@example.com"
+                />
+              </div>
+
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <label htmlFor="password" className="text-sm font-medium text-lumen-text">Password</label>
+                  <button
+                    type="button"
+                    onClick={() => { setMode('reset'); setError(null) }}
+                    className="text-xs text-lumen-muted transition-colors hover:text-lumen-accent"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <input
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="lumen-input px-4 py-3 text-sm placeholder:text-lumen-muted/55"
+                  placeholder="Enter your password"
+                />
+              </div>
+
+              {message && (
+                <div className="rounded-2xl border border-lumen-accent/25 bg-lumen-accent/10 px-4 py-3 text-sm text-lumen-text">{message}</div>
+              )}
+              {error && (
+                <div className="rounded-2xl border border-lumen-danger/25 bg-lumen-danger/10 px-4 py-3 text-sm text-lumen-danger">{error}</div>
+              )}
+
+              <motion.button
+                type="submit"
+                disabled={loading}
+                whileTap={{ scale: 0.98 }}
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-lumen-accent px-4 text-sm font-semibold text-white shadow-accent-glow-sm transition-colors hover:bg-lumen-accent-dim disabled:cursor-not-allowed disabled:opacity-55"
+              >
+                {loading ? 'Signing in...' : 'Sign in'}
+                <ArrowRight size={16} />
+              </motion.button>
+            </form>
+
+            <p className="mt-7 text-center text-sm text-lumen-muted">
+              New to Lumen?{' '}
+              <Link href="/signup" className="font-semibold text-lumen-text transition-colors hover:text-lumen-accent">
+                Create an account
+              </Link>
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="mb-8">
+              <p className="text-sm font-medium text-lumen-accent">Password reset</p>
+              <h1 className="mt-2 text-3xl font-semibold text-lumen-text">Reset your password</h1>
+              <p className="mt-3 text-sm leading-6 text-lumen-muted">
+                Enter your email and we&apos;ll send you a link to set a new password.
+              </p>
             </div>
-          )}
 
-          <motion.button
-            type="submit"
-            disabled={loading}
-            whileTap={{ scale: 0.98 }}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-lumen-accent px-4 text-sm font-semibold text-white shadow-accent-glow-sm transition-colors hover:bg-lumen-accent-dim disabled:cursor-not-allowed disabled:opacity-55"
-          >
-            {loading ? 'Signing in...' : 'Sign in'}
-            <ArrowRight size={16} />
-          </motion.button>
-        </form>
+            {info ? (
+              <div className="rounded-2xl border border-lumen-accent/25 bg-lumen-accent/10 px-4 py-4 text-sm text-lumen-text">
+                {info}
+              </div>
+            ) : (
+              <form onSubmit={handleReset} className="space-y-5">
+                <div>
+                  <label htmlFor="reset-email" className="mb-2 block text-sm font-medium text-lumen-text">Email</label>
+                  <input
+                    id="reset-email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="lumen-input px-4 py-3 text-sm placeholder:text-lumen-muted/55"
+                    placeholder="you@example.com"
+                  />
+                </div>
 
-        <p className="mt-7 text-center text-sm text-lumen-muted">
-          New to Lumen?{' '}
-          <Link href="/signup" className="font-semibold text-lumen-text transition-colors hover:text-lumen-accent">
-            Create an account
-          </Link>
-        </p>
+                {error && (
+                  <div className="rounded-2xl border border-lumen-danger/25 bg-lumen-danger/10 px-4 py-3 text-sm text-lumen-danger">{error}</div>
+                )}
+
+                <motion.button
+                  type="submit"
+                  disabled={loading}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-lumen-accent px-4 text-sm font-semibold text-white shadow-accent-glow-sm transition-colors hover:bg-lumen-accent-dim disabled:cursor-not-allowed disabled:opacity-55"
+                >
+                  {loading ? 'Sending...' : 'Send reset link'}
+                  <ArrowRight size={16} />
+                </motion.button>
+              </form>
+            )}
+
+            <p className="mt-7 text-center text-sm text-lumen-muted">
+              <button
+                onClick={() => { setMode('login'); setError(null); setInfo(null) }}
+                className="font-semibold text-lumen-text transition-colors hover:text-lumen-accent"
+              >
+                Back to sign in
+              </button>
+            </p>
+          </>
+        )}
       </div>
     </motion.div>
   )

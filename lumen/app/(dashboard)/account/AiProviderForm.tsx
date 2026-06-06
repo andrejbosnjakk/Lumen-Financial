@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Bot, Eye, EyeOff, Loader2, Sparkles, Trash2 } from 'lucide-react'
+import { Eye, EyeOff, Loader2, Sparkles, Trash2 } from 'lucide-react'
 
 type Provider = 'groq' | 'anthropic' | 'openai'
 

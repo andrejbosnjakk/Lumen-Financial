@@ -65,8 +65,19 @@ function nearestPrice(map: Map<string, number>, dayStr: string, date: Date): num
   }
 }
 
-async function fetchAllOrders(headers: Record<string, string>): Promise<any[]> {
-  const orders: any[] = []
+interface T212Order {
+  status: string
+  type: string
+  dateExecuted: string
+  ticker: string
+  filledQuantity: number
+  quantity: number
+  limitPrice?: number
+  fillResult?: { value: number; price: number }
+}
+
+async function fetchAllOrders(headers: Record<string, string>): Promise<T212Order[]> {
+  const orders: T212Order[] = []
   let cursor: string | null = null
   for (let page = 0; page < 20; page++) {
     const url = new URL(`${T212_BASE}/equity/history/orders`)
@@ -75,7 +86,7 @@ async function fetchAllOrders(headers: Record<string, string>): Promise<any[]> {
     const res = await fetch(url.toString(), { headers })
     if (!res.ok) break
     const json = await res.json()
-    const items: any[] = json.items ?? []
+    const items: T212Order[] = (json.items as T212Order[] | null) ?? []
     if (items.length === 0) break
     orders.push(...items)
     if (!json.nextPagePath) break
@@ -156,7 +167,7 @@ export async function GET(request: Request) {
   // Sort all filled buy/sell orders chronologically
   const filledOrders = orders
     .filter(o => o.status === 'FILLED' && (BUY_TYPES.has(o.type) || SELL_TYPES.has(o.type)))
-    .sort((a: any, b: any) => new Date(a.dateExecuted).getTime() - new Date(b.dateExecuted).getTime())
+    .sort((a, b) => new Date(a.dateExecuted).getTime() - new Date(b.dateExecuted).getTime())
 
   if (filledOrders.length === 0) return NextResponse.json({ points: [] })
 
