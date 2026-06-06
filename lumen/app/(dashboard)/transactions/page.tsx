@@ -118,12 +118,12 @@ export default function TransactionsPage() {
   const hasActiveFilters = debouncedSearch || category || dateFrom || dateTo
 
   return (
-    <div>
-      <div className="flex items-start justify-between mb-6">
+    <div className="space-y-5">
+      <div className="animate-fade-up flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-lumen-text">Transactions</h1>
+          <h1 className="text-3xl font-semibold text-lumen-text sm:text-4xl">Transactions</h1>
           {count > 0 && (
-            <p className="text-[13px] text-lumen-muted mt-0.5">{count} total</p>
+            <p className="mt-2 text-sm leading-6 text-lumen-muted">{count} total</p>
           )}
         </div>
         <CsvUploadButton onUploadSuccess={() => { setPage(1); fetchTransactions() }} />

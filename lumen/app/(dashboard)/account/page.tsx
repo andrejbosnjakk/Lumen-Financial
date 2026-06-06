@@ -40,10 +40,9 @@ export default async function AccountPage() {
     <div className="space-y-6">
       <div className="animate-fade-up flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
         <div>
-          <p className="text-sm font-medium text-lumen-accent">Account</p>
-          <h1 className="mt-2 text-3xl font-semibold text-lumen-text sm:text-4xl">Account settings</h1>
+          <h1 className="text-3xl font-semibold text-lumen-text sm:text-4xl">Account</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-lumen-muted">
-            Manage profile details, password, and imported CSV files.
+            Profile, password, and import history.
           </p>
         </div>
       </div>

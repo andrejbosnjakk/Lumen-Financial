@@ -1,7 +1,8 @@
 import Link from 'next/link'
-import { ArrowLeftRight, Building2, ChevronDown, FileText, Landmark, PiggyBank, ReceiptText, TrendingDown, TrendingUp } from 'lucide-react'
+import { PiggyBank, ReceiptText, TrendingDown, TrendingUp, Upload } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import DashboardUploadZone from '../DashboardUploadZone'
+import InsightsPanel from '../InsightsPanel'
 
 function fmt(amount: number, currency = 'EUR') {
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency }).format(amount)
@@ -105,50 +106,38 @@ export default async function DashboardPage() {
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <section className="animate-fade-up stagger-2 lumen-glass relative overflow-hidden rounded-[18px]">
-          <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-sky-300/12 blur-3xl" />
-          <div className="pointer-events-none absolute left-8 top-8 h-80 w-80 rounded-full bg-lumen-accent/10 blur-3xl" />
-
           <div className="relative p-4 sm:p-5">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="text-3xl font-bold text-lumen-text tabular-nums sm:text-4xl">
-                    {balance !== null ? fmt(balance, currency) : fmt(0, currency)}
-                  </p>
-                  <span className="lumen-pill flex h-8 w-8 items-center justify-center rounded-full text-lumen-text">
-                    <ChevronDown size={16} />
-                  </span>
-                </div>
-                <div className="mt-3 flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-lumen-accent text-[10px] font-bold text-white shadow-accent-glow-sm">
-                    E
-                  </span>
-                  <span className="text-base font-semibold text-lumen-text">Personal - {currency}</span>
-                </div>
-                {balanceDate && <p className="mt-1 text-sm text-lumen-muted">Updated {balanceDate}</p>}
+            <div className="flex flex-col gap-1">
+              <p className="text-3xl font-bold text-lumen-text tabular-nums sm:text-4xl">
+                {balance !== null ? fmt(balance, currency) : fmt(0, currency)}
+              </p>
+              <div className="mt-2 flex items-center gap-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-lumen-accent text-[10px] font-bold text-white">
+                  E
+                </span>
+                <span className="text-sm font-medium text-lumen-muted">Personal · {currency}</span>
               </div>
-
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { label: 'Move', Icon: ArrowLeftRight },
-                  { label: 'Statement', Icon: FileText },
-                  { label: 'Account details', Icon: Building2 },
-                ].map(({ label, Icon }) => (
-                  <Link key={label} href="/transactions" className="lumen-pill inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-bold text-lumen-text transition-colors hover:bg-white/20">
-                    <Icon size={15} />
-                    {label}
-                  </Link>
-                ))}
-              </div>
+              {balanceDate && <p className="text-xs text-lumen-muted/70">Updated {balanceDate}</p>}
             </div>
 
-            <div className="mt-7 h-2 overflow-hidden rounded-full bg-white/10">
-              <div className="h-full w-[68%] rounded-full bg-[linear-gradient(90deg,var(--lumen-accent),#38BDF8,#10B981)]" />
-            </div>
-            <div className="mt-3 flex items-center justify-between text-sm text-lumen-muted">
-              <span>Monthly activity</span>
-              <span>{rows.length} transactions</span>
-            </div>
+            {(() => {
+              const spendRatio = monthIncome > 0 ? Math.min(monthExpenses / monthIncome, 1) : 0
+              const overBudget = monthIncome > 0 && monthExpenses > monthIncome
+              return (
+                <div className="mt-6">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.08]">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${overBudget ? 'bg-lumen-danger' : 'bg-[linear-gradient(90deg,var(--lumen-accent),#10B981)]'}`}
+                      style={{ width: `${Math.round(spendRatio * 100)}%` }}
+                    />
+                  </div>
+                  <div className="mt-2 flex items-center justify-between text-xs text-lumen-muted">
+                    <span>{overBudget ? 'Expenses exceed income' : `${Math.round(spendRatio * 100)}% of income spent`}</span>
+                    <span>{rows.length} transactions this month</span>
+                  </div>
+                </div>
+              )
+            })()}
           </div>
 
           {recentTxs && recentTxs.length > 0 && (
@@ -187,17 +176,15 @@ export default async function DashboardPage() {
         </section>
 
         <section className="animate-fade-up stagger-3 grid content-start gap-3">
-          <div className="lumen-glass rounded-[18px] p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-lumen-accent">
-                <Landmark size={22} />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-lumen-text">Revolut import</p>
-                <p className="text-sm text-lumen-muted">Live from CSV data</p>
-              </div>
+          <Link href="/transactions" className="lumen-panel group flex items-center gap-3 rounded-[18px] p-5 transition-colors hover:border-lumen-accent/30">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-lumen-accent/10 text-lumen-accent group-hover:bg-lumen-accent/16 transition-colors">
+              <Upload size={18} />
             </div>
-          </div>
+            <div>
+              <p className="text-sm font-semibold text-lumen-text">Import transactions</p>
+              <p className="text-xs text-lumen-muted">Upload a Revolut CSV export</p>
+            </div>
+          </Link>
           {stats.map(({ label, value, Icon, tone, bg }) => (
             <div key={label} className="lumen-panel flex items-center justify-between rounded-[18px] p-5">
               <div>
@@ -213,6 +200,8 @@ export default async function DashboardPage() {
           ))}
         </section>
       </div>
+
+      <InsightsPanel />
     </div>
   )
 }

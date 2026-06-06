@@ -185,10 +185,9 @@ export default function AnalyticsPage() {
     <div className="space-y-6">
       <div className="animate-fade-up flex flex-col justify-between gap-4 xl:flex-row xl:items-end">
         <div>
-          <p className="text-sm font-medium text-lumen-accent">Analytics</p>
-          <h1 className="mt-2 text-3xl font-semibold text-lumen-text sm:text-4xl">Analytics</h1>
+          <h1 className="text-3xl font-semibold text-lumen-text sm:text-4xl">Analytics</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-lumen-muted">
-            Review cash flow, spending categories, savings, and top merchants.
+            Cash flow, spending by category, savings trend, and top merchants.
           </p>
         </div>
 

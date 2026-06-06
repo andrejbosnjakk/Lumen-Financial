@@ -10,10 +10,10 @@ const config: Config = {
     extend: {
       colors: {
         lumen: {
-          bg:           '#0D0F1A',
-          surface:      '#141622',
-          'surface-2':  '#1C1F2E',
-          border:       '#252836',
+          bg:           '#090d17',
+          surface:      '#0e1520',
+          'surface-2':  '#131c28',
+          border:       '#1c2535',
           accent:       'rgb(var(--lumen-accent-rgb) / <alpha-value>)',
           'accent-dim': 'rgb(var(--lumen-accent-dim-rgb) / <alpha-value>)',
           'accent-glow':'rgb(var(--lumen-accent-rgb) / 0.15)',
@@ -28,8 +28,8 @@ const config: Config = {
         sans: ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        'accent-glow': '0 0 40px rgb(var(--lumen-accent-rgb) / 0.14)',
-        'accent-glow-sm': '0 0 16px rgb(var(--lumen-accent-rgb) / 0.24)',
+        'accent-glow': '0 0 24px rgb(var(--lumen-accent-rgb) / 0.08)',
+        'accent-glow-sm': '0 0 10px rgb(var(--lumen-accent-rgb) / 0.14)',
       },
       animation: {
         'fade-up': 'fadeUp 0.4s ease both',

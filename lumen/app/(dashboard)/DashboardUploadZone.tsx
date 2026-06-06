@@ -3,7 +3,7 @@
 import { useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Upload } from 'lucide-react'
+import { BarChart2, CheckCircle2, Tags, Upload } from 'lucide-react'
 import Papa from 'papaparse'
 import { validateColumns, type RevolutRow } from '@/lib/ingester'
 
@@ -89,49 +89,61 @@ export default function DashboardUploadZone() {
       <input ref={inputRef} type="file" accept=".csv" onChange={handleFileChange} className="hidden" />
 
       {phase === 'uploading' && (
-        <div className="space-y-2">
+        <div className="space-y-4">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-            className="w-8 h-8 border-2 border-lumen-accent/30 border-t-lumen-accent rounded-full mx-auto"
+            className="w-9 h-9 border-2 border-lumen-accent/25 border-t-lumen-accent rounded-full mx-auto"
           />
-          <p className="text-[13px] text-lumen-muted">Importing transactions…</p>
+          <div>
+            <p className="text-sm font-medium text-lumen-text">Parsing and categorizing…</p>
+            <p className="text-xs text-lumen-muted mt-1">Duplicates are skipped automatically</p>
+          </div>
         </div>
       )}
 
       {phase === 'done' && (
-        <div className="space-y-2">
-          <div className="w-10 h-10 rounded-full bg-lumen-success/10 flex items-center justify-center mx-auto">
-            <span className="text-lumen-success text-lg">✓</span>
+        <div className="space-y-3">
+          <div className="w-11 h-11 rounded-full bg-lumen-success/10 flex items-center justify-center mx-auto">
+            <CheckCircle2 size={22} className="text-lumen-success" />
           </div>
-          <p className="text-[13px] font-medium text-lumen-success">{message}</p>
-          <p className="text-[12px] text-lumen-muted">Refreshing your dashboard…</p>
+          <div>
+            <p className="text-sm font-semibold text-lumen-success">{message}</p>
+            <p className="text-xs text-lumen-muted mt-1">Updating your dashboard…</p>
+          </div>
         </div>
       )}
 
       {phase === 'error' && (
         <div className="space-y-2">
-          <p className="text-[13px] font-medium text-lumen-danger">{message}</p>
-          <p className="text-[12px] text-lumen-muted">Click to try again</p>
+          <p className="text-sm font-medium text-lumen-danger">{message}</p>
+          <p className="text-xs text-lumen-muted">Click to try again</p>
         </div>
       )}
 
       {(phase === 'idle' || phase === 'dragging') && (
-        <div className="space-y-3">
-          <div className="w-10 h-10 rounded-xl bg-lumen-accent/10 flex items-center justify-center mx-auto">
-            <Upload size={18} className="text-lumen-accent" />
+        <div className="space-y-5">
+          <div className="w-11 h-11 rounded-2xl bg-lumen-accent/10 flex items-center justify-center mx-auto">
+            <Upload size={20} className={`transition-colors ${phase === 'dragging' ? 'text-lumen-accent scale-110' : 'text-lumen-accent'}`} />
           </div>
           <div>
-            <p className="text-[13px] font-medium text-lumen-text">
-              {phase === 'dragging' ? 'Drop your CSV here' : 'Drop your Revolut CSV here'}
+            <p className="text-sm font-semibold text-lumen-text">
+              {phase === 'dragging' ? 'Drop to import' : 'Drop your Revolut CSV here'}
             </p>
-            <p className="text-[12px] text-lumen-muted mt-1">
+            <p className="text-xs text-lumen-muted mt-1.5">
               or <span className="text-lumen-accent underline underline-offset-2">browse files</span>
             </p>
           </div>
-          <p className="text-[11px] text-lumen-muted/60 uppercase tracking-wider">
-            Revolut account statement · CSV
-          </p>
+          <div className="flex items-center justify-center gap-6 pt-1">
+            <div className="flex items-center gap-1.5 text-[11px] text-lumen-muted/60">
+              <Tags size={12} />
+              <span>Auto-categorized</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-[11px] text-lumen-muted/60">
+              <BarChart2 size={12} />
+              <span>Instant analytics</span>
+            </div>
+          </div>
         </div>
       )}
     </motion.div>

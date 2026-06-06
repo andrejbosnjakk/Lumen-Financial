@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight, BarChart2, ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { LumenLogo, LumenStar } from '@/components/Logo'
+import { LumenLogo } from '@/components/Logo'
 
 function LoginForm() {
   const router = useRouter()
@@ -40,7 +40,7 @@ function LoginForm() {
       className="w-full max-w-[430px]"
     >
       <div className="mb-8 lg:hidden">
-        <LumenLogo size={34} />
+        <Link href="/"><LumenLogo size={34} /></Link>
       </div>
 
       <div className="lumen-panel rounded-[28px] p-7 sm:p-9">
@@ -125,17 +125,16 @@ function AuthVisual() {
       <div className="absolute inset-y-12 right-0 w-px bg-lumen-border" />
 
       <div className="relative z-10 flex w-full flex-col justify-between">
-        <LumenLogo size={42} />
+        <Link href="/">
+          <LumenLogo size={42} />
+        </Link>
 
         <div className="max-w-xl">
-          <div className="mb-10 flex h-28 w-28 items-center justify-center rounded-[32px] border border-white/10 bg-white/[0.04] shadow-accent-glow">
-            <LumenStar size={78} />
-          </div>
           <h2 className="text-5xl font-semibold leading-[1.04] text-lumen-text">
-            Revolut CSV dashboard
+            Financial clarity,<br />illuminated.
           </h2>
           <p className="mt-6 max-w-lg text-base leading-7 text-lumen-muted">
-            Import transactions, review categories, and keep account activity organized.
+            Upload your Revolut CSV and get instant categorization, spending analytics, and clean financial insights.
           </p>
         </div>
 
@@ -143,12 +142,12 @@ function AuthVisual() {
           <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-4">
             <ShieldCheck className="mb-5 text-lumen-accent" size={22} />
             <p className="text-sm font-semibold text-lumen-text">Private by design</p>
-            <p className="mt-1 text-sm leading-5 text-lumen-muted">Your analysis stays scoped to your account.</p>
+            <p className="mt-1 text-sm leading-5 text-lumen-muted">Row-level security — your data is visible only to you.</p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-4">
             <BarChart2 className="mb-5 text-lumen-accent" size={22} />
-            <p className="text-sm font-semibold text-lumen-text">Reports included</p>
-            <p className="mt-1 text-sm leading-5 text-lumen-muted">Review charts and export a PDF when needed.</p>
+            <p className="text-sm font-semibold text-lumen-text">Instant insights</p>
+            <p className="mt-1 text-sm leading-5 text-lumen-muted">Category breakdown, cash flow, and PDF export.</p>
           </div>
         </div>
       </div>

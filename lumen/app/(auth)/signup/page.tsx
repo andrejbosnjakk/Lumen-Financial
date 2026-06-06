@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight, BadgeCheck, LineChart, UploadCloud } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { LumenLogo, LumenStar } from '@/components/Logo'
+import { LumenLogo } from '@/components/Logo'
 import PasswordStrengthMeter, { getPasswordStrength } from '@/components/PasswordStrengthMeter'
 
 export default function SignupPage() {
@@ -69,17 +69,16 @@ export default function SignupPage() {
         <div className="absolute inset-y-12 right-0 w-px bg-lumen-border" />
 
         <div className="relative z-10 flex w-full flex-col justify-between">
-          <LumenLogo size={42} />
+          <Link href="/">
+            <LumenLogo size={42} />
+          </Link>
 
           <div className="max-w-xl">
-            <div className="mb-10 flex h-28 w-28 items-center justify-center rounded-[32px] border border-white/10 bg-white/[0.04] shadow-accent-glow">
-              <LumenStar size={78} />
-            </div>
             <h1 className="text-5xl font-semibold leading-[1.04] text-lumen-text">
-              Your Revolut data, organized.
+              Understand your finances, clearly.
             </h1>
             <p className="mt-6 max-w-lg text-base leading-7 text-lumen-muted">
-              Import a CSV, review the categories, and keep a clear view of spending activity.
+              Upload a Revolut CSV, get instant categorization, and see exactly where your money goes.
             </p>
           </div>
 
@@ -108,7 +107,7 @@ export default function SignupPage() {
           className="relative z-10 w-full max-w-[560px]"
         >
           <div className="mb-8 lg:hidden">
-            <LumenLogo size={34} />
+            <Link href="/"><LumenLogo size={34} /></Link>
           </div>
 
           <div className="lumen-panel rounded-[24px] p-6 sm:p-8">
