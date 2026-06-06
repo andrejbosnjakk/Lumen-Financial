@@ -1,5 +1,6 @@
-import { Clock3, FileText, ShieldCheck, UploadCloud } from 'lucide-react'
+import { Bot, Clock3, FileText, ShieldCheck, UploadCloud } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import AiProviderForm from './AiProviderForm'
 import ChangePasswordForm from './ChangePasswordForm'
 import ProfileForm from './ProfileForm'
 import type { Profile } from '@/lib/types'
@@ -87,6 +88,19 @@ export default async function AccountPage() {
           </section>
         </div>
       </div>
+
+      <section className="lumen-panel rounded-[28px] p-5 sm:p-6">
+        <div className="mb-5 flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-lumen-accent/10 text-lumen-accent">
+            <Bot size={20} />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-lumen-text">AI assistant</h2>
+            <p className="mt-1 text-xs text-lumen-muted">Connect Groq (free), Claude, or ChatGPT to ask questions about your finances.</p>
+          </div>
+        </div>
+        <AiProviderForm />
+      </section>
 
       <section className="animate-fade-up stagger-2 lumen-panel overflow-hidden rounded-[28px]">
         <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4 sm:px-6">

@@ -1,12 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getPortfolioCache, setPortfolioCache, getStalePorfolioCache } from '@/lib/portfolio-cache'
 import type { T212Cash, T212Position, PortfolioData } from '@/lib/types'
 
 const BASE = 'https://live.trading212.com/api/v0'
-const CACHE_TTL_MS = 60_000 // 60 seconds
-
-// In-memory cache per user — resets on server restart, fine for dev/hackathon
-const cache = new Map<string, { data: PortfolioData; expiresAt: number }>()
 
 function buildAuthHeader(apiKey: string, apiSecret?: string | null): string {
   if (apiSecret) {
@@ -23,11 +20,8 @@ export async function GET(request: Request) {
 
   const forceRefresh = new URL(request.url).searchParams.get('refresh') === '1'
 
-  // Serve from cache if fresh and not a forced refresh
-  const cached = cache.get(user.id)
-  if (!forceRefresh && cached && cached.expiresAt > Date.now()) {
-    return NextResponse.json(cached.data)
-  }
+  const cached = getPortfolioCache(user.id)
+  if (!forceRefresh && cached) return NextResponse.json(cached)
 
   const { data: conn } = await supabase
     .from('brokerage_connections')
@@ -52,8 +46,8 @@ export async function GET(request: Request) {
     )
   }
   if (posRes.status === 429 || cashRes.status === 429) {
-    // Serve stale cache rather than erroring if we have something
-    if (cached) return NextResponse.json(cached.data)
+    const stale = getStalePorfolioCache(user.id)
+    if (stale) return NextResponse.json(stale)
     return NextResponse.json(
       { error: 'Trading 212 rate limit hit. Wait a moment and refresh.' },
       { status: 429 }
@@ -72,7 +66,27 @@ export async function GET(request: Request) {
   const positions: T212Position[] = posJson.items ?? posJson ?? []
 
   const data: PortfolioData = { positions, cash, accountType: 'live' }
-  cache.set(user.id, { data, expiresAt: Date.now() + CACHE_TTL_MS })
+  setPortfolioCache(user.id, data)
+
+  // Save a snapshot at most once per hour (fire and forget)
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+  supabase
+    .from('portfolio_snapshots')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .gte('recorded_at', oneHourAgo)
+    .then(({ count }) => {
+      if (!count) {
+        supabase.from('portfolio_snapshots').insert({
+          user_id: user.id,
+          broker: 'trading212',
+          total_value: cash.total,
+          invested: cash.invested,
+          ppl: cash.ppl,
+          cash: cash.free,
+        })
+      }
+    })
 
   return NextResponse.json(data)
 }

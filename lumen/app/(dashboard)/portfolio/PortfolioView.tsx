@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { ArrowDownRight, ArrowUpRight, RefreshCw, TrendingUp, Unlink, Wallet } from 'lucide-react'
 import type { PortfolioData } from '@/lib/types'
 
+
 function fmt(n: number, currency = 'EUR') {
   return new Intl.NumberFormat('nl-NL', {
     style: 'currency',
