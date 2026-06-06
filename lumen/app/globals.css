@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Dark mode (default) ── */
 :root {
   --lumen-bg:           #090d17;
   --lumen-surface:      #0e1520;
@@ -12,11 +13,23 @@
   --lumen-accent-rgb:   108 99 255;
   --lumen-accent-dim:   #4A42CC;
   --lumen-accent-dim-rgb: 74 66 204;
-  --lumen-text:         #F7F6F2;
-  --lumen-muted:        #6B7280;
+  --lumen-text-rgb:     247 246 242;
+  --lumen-muted-rgb:    107 114 128;
   --lumen-success:      #10B981;
   --lumen-danger:       #EF4444;
   --lumen-warning:      #F59E0B;
+  /* chart tokens */
+  --lumen-chart-grid:   rgba(247, 246, 242, 0.08);
+  --lumen-chart-axis:   #6B7280;
+  --lumen-chart-reference: rgba(247, 246, 242, 0.18);
+  --lumen-chart-cursor: rgba(255, 255, 255, 0.04);
+  --lumen-chart-tip-bg: #141622;
+  --lumen-chart-tip-border: rgba(247, 246, 242, 0.1);
+  /* adaptive fills */
+  --lumen-fill-sm:      rgba(255, 255, 255, 0.035);
+  --lumen-fill:         rgba(255, 255, 255, 0.06);
+  --lumen-fill-input-bg: rgba(9, 13, 23, 0.58);
+  --lumen-fill-input-border: rgba(247, 246, 242, 0.1);
 }
 
 :root[data-theme='green'] {
@@ -24,7 +37,6 @@
   --lumen-accent-rgb:     0 166 105;
   --lumen-accent-dim:     #008556;
   --lumen-accent-dim-rgb: 0 133 86;
-  /* Surfaces shift green-dark */
   --lumen-bg:             #080f0d;
   --lumen-surface:        #0c1610;
   --lumen-surface-2:      #111e15;
@@ -36,18 +48,55 @@
   --lumen-accent-rgb:     255 176 32;
   --lumen-accent-dim:     #D88900;
   --lumen-accent-dim-rgb: 216 137 0;
-  /* Surfaces shift warm-dark */
   --lumen-bg:             #0e0c07;
   --lumen-surface:        #161208;
   --lumen-surface-2:      #1c170a;
   --lumen-border:         #2b2210;
 }
 
+/* ── Light mode ── */
+:root[data-mode='light'] {
+  --lumen-bg:        #F4F3EF;
+  --lumen-surface:   #FFFFFF;
+  --lumen-surface-2: #ECEAED;
+  --lumen-border:    #D6D4DA;
+  --lumen-text-rgb:  26 25 38;
+  --lumen-muted-rgb: 98 101 112;
+  --lumen-chart-grid:        rgba(0, 0, 0, 0.07);
+  --lumen-chart-axis:        #7B7E8A;
+  --lumen-chart-reference:   rgba(0, 0, 0, 0.18);
+  --lumen-chart-cursor:      rgba(0, 0, 0, 0.04);
+  --lumen-chart-tip-bg:      #FFFFFF;
+  --lumen-chart-tip-border:  rgba(0, 0, 0, 0.10);
+  --lumen-fill-sm:           rgba(0, 0, 0, 0.04);
+  --lumen-fill:              rgba(0, 0, 0, 0.05);
+  --lumen-fill-input-bg:     #FFFFFF;
+  --lumen-fill-input-border: rgba(0, 0, 0, 0.15);
+}
+
+:root[data-mode='light'][data-theme='green'] {
+  --lumen-bg:        #F2F7F4;
+  --lumen-surface:   #FFFFFF;
+  --lumen-surface-2: #E8F0EB;
+  --lumen-border:    #C8D9CE;
+  --lumen-text-rgb:  14 28 20;
+  --lumen-muted-rgb: 80 110 92;
+}
+
+:root[data-mode='light'][data-theme='amber'] {
+  --lumen-bg:        #FAF8F2;
+  --lumen-surface:   #FFFFFF;
+  --lumen-surface-2: #F2ECDA;
+  --lumen-border:    #DDD0A8;
+  --lumen-text-rgb:  30 24 8;
+  --lumen-muted-rgb: 110 96 60;
+}
+
 * { box-sizing: border-box; }
 
 html, body {
   background-color: var(--lumen-bg);
-  color: var(--lumen-text);
+  color: rgb(var(--lumen-text-rgb));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -74,16 +123,16 @@ textarea {
 }
 
 .lumen-pill {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--lumen-fill);
+  border: 1px solid var(--lumen-border);
 }
 
 .lumen-input {
   width: 100%;
   border-radius: 14px;
-  border: 1px solid rgba(247, 246, 242, 0.1);
-  background: rgba(9, 13, 23, 0.58);
-  color: var(--lumen-text);
+  border: 1px solid var(--lumen-fill-input-border);
+  background: var(--lumen-fill-input-bg);
+  color: rgb(var(--lumen-text-rgb));
   outline: none;
   transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
 }
@@ -91,7 +140,6 @@ textarea {
 .lumen-input:focus {
   border-color: rgb(var(--lumen-accent-rgb) / 0.82);
   box-shadow: 0 0 0 4px rgb(var(--lumen-accent-rgb) / 0.12);
-  background: rgba(9, 13, 23, 0.76);
 }
 
 /* Custom scrollbar */
@@ -108,8 +156,8 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0 1000px var(--lumen-surface) inset !important;
-  -webkit-text-fill-color: var(--lumen-text) !important;
-  caret-color: var(--lumen-text);
+  -webkit-text-fill-color: rgb(var(--lumen-text-rgb)) !important;
+  caret-color: rgb(var(--lumen-text-rgb));
 }
 
 /* Stagger animation utilities */

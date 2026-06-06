@@ -5,6 +5,16 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ArrowDownRight, ArrowUpRight, RefreshCw, TrendingUp, Unlink, Wallet } from 'lucide-react'
 import type { PortfolioData } from '@/lib/types'
+import PortfolioCharts, { type ChartPosition } from './PortfolioCharts'
+import RiskBreakdown, { type RiskPosition } from './RiskBreakdown'
+
+const EXCHANGE_CURRENCY: Record<string, string> = {
+  NASDAQ: 'USD', NYSE: 'USD', AMEX: 'USD', BATS: 'USD',
+  US: 'USD', LSE: 'GBP', L: 'GBP',
+  AMS: 'EUR', EPA: 'EUR', PAR: 'EUR', XETRA: 'EUR', GER: 'EUR', BME: 'EUR',
+  MTA: 'EUR', SWX: 'CHF', CPH: 'DKK', STO: 'SEK',
+  OSL: 'NOK', HEL: 'EUR', WSE: 'PLN',
+}
 
 
 function fmt(n: number, currency = 'EUR') {
@@ -102,6 +112,22 @@ export default function PortfolioView({ accountType }: { accountType: 'live' | '
     (a, b) => b.quantity * b.currentPrice - a.quantity * a.currentPrice
   )
 
+  const chartPositions: ChartPosition[] = sortedPositions.map(pos => ({
+    label: cleanTicker(pos.ticker),
+    marketValue: pos.quantity * pos.currentPrice,
+    pnl: pos.ppl + pos.fxPpl,
+  }))
+
+  const riskPositions: RiskPosition[] = sortedPositions.map(pos => {
+    const parts = pos.ticker.split('_')
+    const exchange = parts.length >= 3 ? parts[parts.length - 2] : ''
+    return {
+      ticker: pos.ticker,
+      marketValue: pos.quantity * pos.currentPrice,
+      currency: EXCHANGE_CURRENCY[exchange] ?? 'EUR',
+    }
+  })
+
   const statCards = [
     {
       label: 'Portfolio value',
@@ -195,6 +221,12 @@ export default function PortfolioView({ accountType }: { accountType: 'live' | '
           </motion.div>
         ))}
       </div>
+
+      {/* Charts */}
+      <PortfolioCharts positions={chartPositions} />
+
+      {/* Risk breakdown */}
+      <RiskBreakdown positions={riskPositions} />
 
       {/* Positions */}
       <div className="lumen-panel overflow-hidden rounded-[24px]">

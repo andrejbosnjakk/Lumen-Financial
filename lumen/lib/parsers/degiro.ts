@@ -37,7 +37,6 @@ export function parseDEGIRO(csvText: string): DEGIROPosition[] {
   }
 
   const isinIdx   = idx('isin')
-  const dateIdx   = idx('datum', 'date')
   const prodIdx   = idx('product')
   const typeIdx   = idx('type', 'transactie type', 'transaction type')
   const aantalIdx = idx('aantal', 'quantity', 'shares', 'hoeveelheid')

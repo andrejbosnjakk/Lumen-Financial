@@ -20,14 +20,9 @@ import {
 } from 'recharts'
 import type { AnalyticsData } from '@/lib/types'
 import { getCachedAnalytics, setCachedAnalytics } from '@/lib/analyticsCache'
+import { useChartTheme, type ChartTheme } from '@/lib/useChartTheme'
 
 const COLORS = ['var(--lumen-accent)', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#F97316', '#EC4899']
-
-const CHART_THEME = {
-  grid: 'rgba(247,246,242,0.08)',
-  axis: '#6B7280',
-  tooltip: { bg: '#141622', border: 'rgba(247,246,242,0.1)', text: '#F7F6F2' },
-}
 
 function fmt(n: number) {
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(n)
@@ -100,16 +95,21 @@ function CustomTooltip({
   label,
   granularity,
   period,
+  chartTheme,
 }: {
   active?: boolean
   payload?: { name: string; value: number; color: string }[]
   label?: string
   granularity: Granularity
   period: Period
+  chartTheme: ChartTheme
 }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-2xl border px-3 py-2.5 text-xs shadow-accent-glow-sm" style={{ background: CHART_THEME.tooltip.bg, borderColor: CHART_THEME.tooltip.border }}>
+    <div
+      className="rounded-2xl border px-3 py-2.5 text-xs shadow-accent-glow-sm"
+      style={{ background: chartTheme.tooltip.bg, borderColor: chartTheme.tooltip.border, color: chartTheme.tooltip.text }}
+    >
       <p className="mb-1.5 text-lumen-muted">{label ? formatTick(String(label), granularity, period) : ''}</p>
       {payload.map((p) => (
         <p key={p.name} style={{ color: p.color }}>
@@ -121,6 +121,7 @@ function CustomTooltip({
 }
 
 export default function AnalyticsPage() {
+  const chartTheme = useChartTheme()
   const [period, setPeriod] = useState<Period>('month')
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -259,10 +260,10 @@ export default function AnalyticsPage() {
               </div>
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={data.byMonth} barCategoryGap="25%">
-                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_THEME.grid} vertical={false} />
-                  <XAxis dataKey="month" tickFormatter={(k) => formatTick(k, granularity, period)} interval={interval} tick={{ fontSize: 11, fill: CHART_THEME.axis }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: CHART_THEME.axis }} tickFormatter={(v) => `EUR ${v}`} axisLine={false} tickLine={false} width={62} />
-                  <Tooltip content={<CustomTooltip granularity={granularity} period={period} />} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
+                  <XAxis dataKey="month" tickFormatter={(k) => formatTick(k, granularity, period)} interval={interval} tick={{ fontSize: 11, fill: chartTheme.axis }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: chartTheme.axis }} tickFormatter={(v) => `EUR ${v}`} axisLine={false} tickLine={false} width={62} />
+                  <Tooltip content={<CustomTooltip granularity={granularity} period={period} chartTheme={chartTheme} />} />
                   <Bar dataKey="income" name="Income" fill="#10B981" radius={[6, 6, 0, 0]} />
                   <Bar dataKey="expenses" name="Expenses" fill="var(--lumen-accent)" radius={[6, 6, 0, 0]} />
                 </BarChart>
@@ -284,7 +285,7 @@ export default function AnalyticsPage() {
                     </Pie>
                     <Tooltip
                       formatter={(v) => fmt(Number(v))}
-                      contentStyle={{ background: CHART_THEME.tooltip.bg, border: `1px solid ${CHART_THEME.tooltip.border}`, borderRadius: 16, fontSize: 12, color: CHART_THEME.tooltip.text }}
+                      contentStyle={{ background: chartTheme.tooltip.bg, border: `1px solid ${chartTheme.tooltip.border}`, borderRadius: 16, fontSize: 12, color: chartTheme.tooltip.text }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -308,10 +309,10 @@ export default function AnalyticsPage() {
                 <p className="mt-1 text-xs text-lumen-muted">Income minus expenses over time.</p>
                 <ResponsiveContainer width="100%" height={320}>
                   <LineChart data={savingsData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={CHART_THEME.grid} vertical={false} />
-                    <XAxis dataKey="month" tickFormatter={(k) => formatTick(k, granularity, period)} interval={interval} tick={{ fontSize: 11, fill: CHART_THEME.axis }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: CHART_THEME.axis }} tickFormatter={(v) => `EUR ${v}`} axisLine={false} tickLine={false} width={62} />
-                    <Tooltip content={<CustomTooltip granularity={granularity} period={period} />} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
+                    <XAxis dataKey="month" tickFormatter={(k) => formatTick(k, granularity, period)} interval={interval} tick={{ fontSize: 11, fill: chartTheme.axis }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: chartTheme.axis }} tickFormatter={(v) => `EUR ${v}`} axisLine={false} tickLine={false} width={62} />
+                    <Tooltip content={<CustomTooltip granularity={granularity} period={period} chartTheme={chartTheme} />} />
                     <Line type="monotone" dataKey="savings" name="Net savings" stroke="var(--lumen-accent)" strokeWidth={3} dot={savingsData.length <= 14 ? { r: 3, fill: 'var(--lumen-accent)' } : false} activeDot={{ r: 5 }} />
                   </LineChart>
                 </ResponsiveContainer>

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ArrowDownRight, ArrowUpRight, Loader2, RefreshCw, Trash2, TrendingUp, Upload, Wallet } from 'lucide-react'
 import type { BrokerImport, ImportedPosition } from '@/app/api/portfolio/imported/route'
+import PortfolioCharts, { type ChartPosition } from './PortfolioCharts'
+import RiskBreakdown, { type RiskPosition } from './RiskBreakdown'
 
 const BROKER_LABEL: Record<string, string> = { ibkr: 'Interactive Brokers', degiro: 'DEGIRO' }
 
@@ -136,6 +138,20 @@ function ImportCard({ imp, onRemove }: { imp: BrokerImport; onRemove: (broker: s
           </motion.div>
         ))}
       </div>
+
+      {/* Charts */}
+      <PortfolioCharts positions={imp.positions.map((pos): ChartPosition => ({
+        label: pos.yahooTicker ?? pos.symbol,
+        marketValue: pos.marketValue,
+        pnl: pos.pnl,
+      }))} />
+
+      {/* Risk breakdown */}
+      <RiskBreakdown positions={imp.positions.map((pos): RiskPosition => ({
+        ticker: pos.yahooTicker ?? pos.symbol,
+        marketValue: pos.marketValue,
+        currency: pos.currency,
+      }))} />
 
       {/* Positions table */}
       <div className="lumen-panel overflow-hidden rounded-[24px]">
