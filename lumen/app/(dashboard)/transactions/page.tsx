@@ -1,33 +1,161 @@
 'use client'
 
-import { useState } from 'react'
-import UploadModal from './UploadModal'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { Transaction } from '@/lib/types'
+import FilterBar from './FilterBar'
+import TransactionRow from './TransactionRow'
+import Pagination from './Pagination'
+import CsvUploadButton from './CsvUploadButton'
+
+const PAGE_SIZE = 50
 
 export default function TransactionsPage() {
-  const [showUpload, setShowUpload] = useState(false)
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [count, setCount] = useState(0)
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [category, setCategory] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [savingId, setSavingId] = useState<string | null>(null)
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const fetchTransactions = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    const params = new URLSearchParams({ page: String(page) })
+    if (debouncedSearch) params.set('search', debouncedSearch)
+    if (category) params.set('category', category)
+    if (dateFrom) params.set('from', dateFrom)
+    if (dateTo) params.set('to', dateTo)
+
+    try {
+      const res = await fetch(`/api/transactions?${params}`)
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Failed to load')
+      setTransactions(json.data ?? [])
+      setCount(json.count ?? 0)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load transactions')
+    } finally {
+      setLoading(false)
+    }
+  }, [page, debouncedSearch, category, dateFrom, dateTo])
+
+  useEffect(() => {
+    fetchTransactions()
+  }, [fetchTransactions])
+
+  function handleSearchChange(val: string) {
+    setSearch(val)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(val)
+      setPage(1)
+    }, 300)
+  }
+
+  function handleFilterChange<T>(setter: (v: T) => void) {
+    return (val: T) => {
+      setter(val)
+      setPage(1)
+    }
+  }
+
+  async function handleCategoryChange(id: string, newCategory: string) {
+    const prev = transactions.find((t) => t.id === id)?.category
+    setSavingId(id)
+    setTransactions((ts) => ts.map((t) => (t.id === id ? { ...t, category: newCategory } : t)))
+
+    try {
+      const res = await fetch(`/api/transactions/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category: newCategory }),
+      })
+      if (!res.ok) throw new Error()
+    } catch {
+      if (prev !== undefined) {
+        setTransactions((ts) => ts.map((t) => (t.id === id ? { ...t, category: prev } : t)))
+      }
+    } finally {
+      setSavingId(null)
+    }
+  }
+
+  const hasActiveFilters = debouncedSearch || category || dateFrom || dateTo
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">Transactions</h1>
-        <button
-          onClick={() => setShowUpload(true)}
-          className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"
-        >
-          Upload CSV
-        </button>
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">Transactions</h1>
+          {count > 0 && (
+            <p className="text-sm text-gray-400 mt-0.5">{count} total</p>
+          )}
+        </div>
+        <CsvUploadButton onUploadSuccess={() => { setPage(1); fetchTransactions() }} />
       </div>
 
-      <div className="rounded-xl border-2 border-dashed border-gray-200 p-12 text-center">
-        <p className="text-gray-400 text-sm">No transactions yet — upload a CSV to get started</p>
-      </div>
+      <FilterBar
+        search={search}
+        category={category}
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onSearchChange={handleSearchChange}
+        onCategoryChange={handleFilterChange(setCategory)}
+        onDateFromChange={handleFilterChange(setDateFrom)}
+        onDateToChange={handleFilterChange(setDateTo)}
+      />
 
-      {showUpload && (
-        <UploadModal
-          onClose={() => setShowUpload(false)}
-          onSuccess={() => setShowUpload(false)}
-        />
+      {error && (
+        <p className="text-sm text-red-500 mb-4">{error}</p>
       )}
+
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {loading ? (
+          <div className="p-12 text-center text-sm text-gray-400">Loading…</div>
+        ) : transactions.length === 0 ? (
+          <div className="p-12 text-center text-sm text-gray-400">
+            {hasActiveFilters
+              ? 'No transactions match your filters'
+              : 'No transactions yet — upload a CSV to get started'}
+          </div>
+        ) : (
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-100 bg-gray-50">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Date</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Description</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Type</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide">Category</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transactions.map((tx) => (
+                <TransactionRow
+                  key={tx.id}
+                  transaction={tx}
+                  saving={savingId === tx.id}
+                  onCategoryChange={handleCategoryChange}
+                />
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <Pagination
+        page={page}
+        pageSize={PAGE_SIZE}
+        count={count}
+        onPageChange={setPage}
+      />
     </div>
   )
 }

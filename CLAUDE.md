@@ -125,6 +125,9 @@ VITE_SUPABASE_ANON_KEY=
 - UX Design: 20%
 - Presentation: 10%
 
+## TODO maintenance
+- After every `git pull` or merge that brings in new code, review `TODO.md` and update it to reflect completed tasks, newly surfaced work, or changed priorities before doing anything else.
+
 ## graphify
 - Run `/graphify .` after scaffolding to build the knowledge graph for token-efficient codebase queries.
 - `graphify-out/graph.html` opens in browser, `graph.json` is used for future session queries.
