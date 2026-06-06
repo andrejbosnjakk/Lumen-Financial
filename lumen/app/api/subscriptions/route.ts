@@ -4,62 +4,154 @@ import type { Frequency, Subscription, ZombieSubscription } from '@/lib/types'
 
 export type { Frequency, Subscription, ZombieSubscription }
 
-// Minimum number of observed charges before we trust a pattern.
-// 2 data points = 1 gap = zero ability to distinguish pattern from coincidence.
-const MIN_COUNT: Record<Frequency, number> = {
-  weekly:    4,   // need at least 3 gaps to confirm weekly cadence
-  monthly:   3,   // need at least 2 gaps to confirm monthly cadence
-  quarterly: 3,
-  yearly:    2,   // yearly is long; 2 occurrences (1 gap) is acceptable
+type Charge = {
+  description: string
+  category: string | null
+  amount: number
+  date: string
 }
 
-// How many days since the last charge before we consider it cancelled.
-const MAX_STALE_DAYS: Record<Frequency, number> = {
-  weekly:    21,
-  monthly:   50,
-  quarterly: 120,
-  yearly:    400,
-}
-
-// Expected cycle length in days.
 const CYCLE_DAYS: Record<Frequency, number> = {
-  weekly:    7,
-  monthly:   30,
-  quarterly: 90,
-  yearly:    365,
+  weekly: 7,
+  monthly: 30,
+  quarterly: 91,
+  yearly: 365,
 }
-
-// Monthly equivalent below which a subscription is "easy to forget" if long-running.
-const FORGOTTEN_THRESHOLD_EUR = 10
-const FORGOTTEN_MIN_MONTHS = 5
 
 const MONTHLY_MULTIPLIER: Record<Frequency, number> = {
-  weekly:    52 / 12,
-  monthly:   1,
+  weekly: 52 / 12,
+  monthly: 1,
   quarterly: 1 / 3,
-  yearly:    1 / 12,
+  yearly: 1 / 12,
 }
 
-function median(arr: number[]): number {
-  const s = [...arr].sort((a, b) => a - b)
-  const m = Math.floor(s.length / 2)
-  return s.length % 2 === 0 ? (s[m - 1] + s[m]) / 2 : s[m]
+const MAX_ACTIVE_STALE_DAYS: Record<Frequency, number> = {
+  weekly: 18,
+  monthly: 55,
+  quarterly: 125,
+  yearly: 420,
 }
 
-function cv(arr: number[]): number {
-  if (arr.length < 2) return 0 // single value: treat as perfectly consistent
-  const mean = arr.reduce((a, b) => a + b, 0) / arr.length
-  if (mean === 0) return Infinity
-  const std = Math.sqrt(arr.reduce((a, b) => a + (b - mean) ** 2, 0) / arr.length)
-  return std / mean
+const KNOWN_SUBSCRIPTION_TERMS = [
+  'adobe',
+  'amazon prime',
+  'apple',
+  'canva',
+  'chatgpt',
+  'claude',
+  'disney',
+  'dropbox',
+  'figma',
+  'github',
+  'google',
+  'hbo',
+  'icloud',
+  'microsoft',
+  'netflix',
+  'notion',
+  'openai',
+  'spotify',
+  'videoland',
+  'youtube',
+]
+
+function daysBetween(a: string, b: string) {
+  return Math.abs(new Date(b).getTime() - new Date(a).getTime()) / 86_400_000
 }
 
-function detectFrequency(medianGapDays: number): Frequency | null {
-  if (medianGapDays >= 5   && medianGapDays <= 10)  return 'weekly'
-  if (medianGapDays >= 25  && medianGapDays <= 35)  return 'monthly'
-  if (medianGapDays >= 85  && medianGapDays <= 96)  return 'quarterly'
-  if (medianGapDays >= 350 && medianGapDays <= 380) return 'yearly'
+function median(arr: number[]) {
+  const sorted = [...arr].sort((a, b) => a - b)
+  const mid = Math.floor(sorted.length / 2)
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid]
+}
+
+function coefficientOfVariation(arr: number[]) {
+  if (arr.length < 2) return 0
+  const mean = arr.reduce((sum, n) => sum + n, 0) / arr.length
+  if (!mean) return Infinity
+  const variance = arr.reduce((sum, n) => sum + (n - mean) ** 2, 0) / arr.length
+  return Math.sqrt(variance) / mean
+}
+
+function normalizeMerchant(description: string) {
+  return description
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/https?:\/\/\S+/g, ' ')
+    .replace(/\b(www|com|nl|eu|bv|b\.v|inc|ltd|limited|payments?|payment|card|ideal|sepa|direct debit|recurring)\b/g, ' ')
+    .replace(/\b\d{2,}\b/g, ' ')
+    .replace(/\b\d{1,2}[/-]\d{1,2}([/-]\d{2,4})?\b/g, ' ')
+    .replace(/[^a-z0-9+]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function hasSubscriptionHint(charge: Charge, key: string) {
+  // Category is only a bonus. The app may not have categorization enabled yet.
+  if (charge.category === 'Subscriptions') return true
+  return KNOWN_SUBSCRIPTION_TERMS.some((term) => key.includes(term) || charge.description.toLowerCase().includes(term))
+}
+
+function detectFrequency(gaps: number[]): Frequency | null {
+  if (!gaps.length) return null
+  const med = median(gaps)
+  if (med >= 5 && med <= 10) return 'weekly'
+  if (med >= 24 && med <= 38) return 'monthly'
+  if (med >= 75 && med <= 110) return 'quarterly'
+  if (med >= 320 && med <= 410) return 'yearly'
   return null
+}
+
+function amountLooksRecurring(amounts: number[], hinted: boolean) {
+  if (amounts.length < 2) return hinted
+  const med = median(amounts)
+  const maxDeviation = Math.max(...amounts.map((amount) => Math.abs(amount - med)))
+  const allowedDeviation = Math.max(2, med * (hinted ? 0.35 : 0.2))
+  return maxDeviation <= allowedDeviation || coefficientOfVariation(amounts) <= (hinted ? 0.3 : 0.18)
+}
+
+function buildSubscription(charges: Charge[], key: string): Subscription | null {
+  const sorted = [...charges].sort((a, b) => a.date.localeCompare(b.date))
+  const hinted = sorted.some((charge) => hasSubscriptionHint(charge, key))
+  const amounts = sorted.map((charge) => charge.amount)
+  const gaps = sorted.slice(1).map((charge, i) => daysBetween(sorted[i].date, charge.date))
+  const frequency = detectFrequency(gaps) ?? (hinted ? 'monthly' : null)
+
+  if (!frequency) return null
+  if (!amountLooksRecurring(amounts, hinted)) return null
+
+  const minCount = frequency === 'weekly' ? 3 : 2
+  if (sorted.length < minCount && !hinted) return null
+
+  // A single known subscription charge should still surface as a candidate;
+  // many demo CSVs only include the current month.
+  if (sorted.length < minCount && hinted) {
+    const latest = sorted[sorted.length - 1]
+    const monthlyEquivalent = Math.round(latest.amount * MONTHLY_MULTIPLIER.monthly * 100) / 100
+    return {
+      description: latest.description,
+      amount: Math.round(latest.amount * 100) / 100,
+      frequency: 'monthly',
+      monthlyEquivalent,
+      lastCharge: latest.date,
+      count: sorted.length,
+    }
+  }
+
+  if (gaps.length >= 2 && coefficientOfVariation(gaps) > (hinted ? 0.45 : 0.32)) return null
+
+  const avgAmount = amounts.reduce((sum, amount) => sum + amount, 0) / amounts.length
+  const monthlyEquivalent = Math.round(avgAmount * MONTHLY_MULTIPLIER[frequency] * 100) / 100
+
+  return {
+    description: sorted[sorted.length - 1].description,
+    amount: Math.round(avgAmount * 100) / 100,
+    frequency,
+    monthlyEquivalent,
+    lastCharge: sorted[sorted.length - 1].date,
+    count: sorted.length,
+  }
 }
 
 export async function GET() {
@@ -72,7 +164,7 @@ export async function GET() {
 
   const { data: txs, error } = await supabase
     .from('transactions')
-    .select('description, amount, completed_date')
+    .select('description, amount, completed_date, category')
     .eq('user_id', user.id)
     .lt('amount', 0)
     .gte('completed_date', since.toISOString().split('T')[0])
@@ -80,83 +172,56 @@ export async function GET() {
     .limit(5000)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!txs || txs.length === 0) return NextResponse.json({ subscriptions: [], zombies: [] })
 
-  if (!txs || txs.length === 0) return NextResponse.json({ subscriptions: [] })
-
-  // Group by normalised description
-  const groups = new Map<string, { description: string; amount: number; date: string }[]>()
+  const groups = new Map<string, Charge[]>()
   for (const tx of txs) {
-    const key = tx.description.toLowerCase().trim()
-    if (!groups.has(key)) groups.set(key, [])
-    groups.get(key)!.push({
-      description: tx.description,
+    const charge: Charge = {
+      description: String(tx.description),
+      category: tx.category,
       amount: Math.abs(Number(tx.amount)),
       date: String(tx.completed_date),
-    })
+    }
+    if (charge.amount < 1) continue
+
+    const key = normalizeMerchant(charge.description)
+    if (!key || key.length < 3) continue
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key)!.push(charge)
   }
 
   const now = Date.now()
   const subscriptions: Subscription[] = []
   const zombies: ZombieSubscription[] = []
+  const seen = new Set<string>()
 
-  for (const charges of Array.from(groups.values())) {
-    const sorted = charges.sort((a: { date: string }, b: { date: string }) => a.date.localeCompare(b.date))
-    const amounts = sorted.map(c => c.amount)
+  for (const [key, charges] of Array.from(groups.entries())) {
+    const sub = buildSubscription(charges, key)
+    if (!sub) continue
 
-    // Amounts must be very consistent — subscriptions rarely change price (5% tolerance)
-    if (cv(amounts) > 0.05) continue
+    const dedupeKey = `${normalizeMerchant(sub.description)}|${sub.frequency}|${Math.round(sub.amount * 100)}`
+    if (seen.has(dedupeKey)) continue
+    seen.add(dedupeKey)
 
-    // Compute day-gaps between consecutive charges
-    const gaps: number[] = []
-    for (let i = 1; i < sorted.length; i++) {
-      const ms = new Date(sorted[i].date).getTime() - new Date(sorted[i - 1].date).getTime()
-      gaps.push(ms / 86_400_000)
-    }
+    const staleDays = Math.round((now - new Date(sub.lastCharge).getTime()) / 86_400_000)
+    const activeLimit = MAX_ACTIVE_STALE_DAYS[sub.frequency]
 
-    if (gaps.length === 0) continue
-
-    const medGap = median(gaps)
-    const freq = detectFrequency(medGap)
-    if (!freq) continue
-
-    // Minimum occurrences: single coincidences must not qualify
-    if (sorted.length < MIN_COUNT[freq]) continue
-
-    // Gap timing must be consistent (20% CV max — tighter than before)
-    if (cv(gaps) > 0.20) continue
-
-    const lastDate = new Date(sorted[sorted.length - 1].date).getTime()
-    const staleDays = (now - lastDate) / 86_400_000
-
-    // Subscription is completely stale — likely cancelled
-    if (staleDays > MAX_STALE_DAYS[freq] * 1.5) continue
-
-    const avgAmount = amounts.reduce((a: number, b: number) => a + b, 0) / amounts.length
-    const monthlyEquivalent = Math.round(avgAmount * MONTHLY_MULTIPLIER[freq] * 100) / 100
-
-    const sub: Subscription = {
-      description: sorted[sorted.length - 1].description,
-      amount: Math.round(avgAmount * 100) / 100,
-      frequency: freq,
-      monthlyEquivalent,
-      lastCharge: sorted[sorted.length - 1].date,
-      count: sorted.length,
-    }
-
-    const isOverdue = staleDays > CYCLE_DAYS[freq] * 1.15 && staleDays <= MAX_STALE_DAYS[freq]
-    const isForgotten = staleDays <= MAX_STALE_DAYS[freq] && monthlyEquivalent <= FORGOTTEN_THRESHOLD_EUR && sorted.length >= FORGOTTEN_MIN_MONTHS
-
-    if (isOverdue) {
-      zombies.push({ ...sub, staleDays: Math.round(staleDays), zombieReason: 'overdue' })
-    } else if (isForgotten) {
-      zombies.push({ ...sub, staleDays: Math.round(staleDays), zombieReason: 'forgotten' })
-    } else if (staleDays <= MAX_STALE_DAYS[freq]) {
+    if (staleDays <= activeLimit) {
       subscriptions.push(sub)
+    } else if (staleDays <= activeLimit * 2.25) {
+      zombies.push({
+        ...sub,
+        staleDays,
+        zombieReason: staleDays > CYCLE_DAYS[sub.frequency] * 1.4 ? 'overdue' : 'forgotten',
+      })
     }
   }
 
   subscriptions.sort((a, b) => b.monthlyEquivalent - a.monthlyEquivalent)
   zombies.sort((a, b) => b.monthlyEquivalent - a.monthlyEquivalent)
 
-  return NextResponse.json({ subscriptions, zombies })
+  return NextResponse.json({
+    subscriptions: subscriptions.slice(0, 20),
+    zombies: zombies.slice(0, 12),
+  })
 }
