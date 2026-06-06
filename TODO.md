@@ -38,9 +38,26 @@
   CREATE POLICY "user owns profile" ON profiles
     FOR ALL USING (auth.uid() = id);
   ```
-
 - [ ] **Import history** — list past import batches with filename, date, counts on Account page
 - [ ] **AI financial insights** — call Claude API with aggregated spend data to generate 2-3 personalised advice bullets; show on dashboard home below summary cards
 - [ ] **Month/date range filter** — transactions page already has per-column date range; still needed on analytics route (`?month=YYYY-MM`) and dashboard home
 - [ ] **Demo mode** — seed a sample dataset so judges can try the app without a real Revolut CSV
 - [ ] **Responsive / mobile layout** — collapse sidebar to bottom nav on small screens
+
+## P4 — Future ideas (brainstormed)
+
+### AI / Intelligence
+- [ ] **Natural language query** — text input ("how much did I spend on food in April?"); Claude API parses intent → filters transactions → returns answer; show on dashboard or as a floating command bar
+- [ ] **Cash flow forecast** — detect recurring income + expenses, project account balance 30/60/90 days forward; display as line chart with dashed "predicted" section past today
+- [ ] **Anomaly detection** — flag transactions that are statistical outliers (3× average spend at a merchant, rare category, unusual amount); highlight with warning icon in transaction list
+- [ ] **Financial health score** — composite 0–100 score from savings rate, spending consistency, income stability, budget adherence; shown on dashboard, updates monthly
+
+### Core UX gaps
+- [ ] **Budget goals** — user sets monthly spending cap per category (e.g. €300 Groceries); progress bar on analytics page; alert state at 80% and 100%; stored in a `budgets` table
+- [ ] **Subscription tracker** — dedicated view of all auto-detected recurring charges; shows total monthly cost; user can flag subscriptions to review or cancel
+- [ ] **Month-over-month comparison** — side-by-side this month vs last month vs same month last year per category; add as a section on the analytics page
+- [ ] **Transaction notes** — free-text annotation field per transaction via edit modal; stored in `note` column on transactions table
+
+### Reach / Differentiators
+- [ ] **Multi-bank CSV support** — add column mappings for ING, ABN AMRO, Rabobank; auto-detect bank from headers; same categorization pipeline after parsing
+- [ ] **Export as PDF report** — monthly summary PDF: balance, income/expenses breakdown, top categories, top merchants; useful for self-employed / expense reports
