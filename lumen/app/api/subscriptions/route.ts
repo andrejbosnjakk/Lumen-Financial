@@ -67,12 +67,19 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: txs } = await supabase
+  const since = new Date()
+  since.setMonth(since.getMonth() - 24)
+
+  const { data: txs, error } = await supabase
     .from('transactions')
     .select('description, amount, completed_date')
     .eq('user_id', user.id)
     .lt('amount', 0)
+    .gte('completed_date', since.toISOString().split('T')[0])
     .order('completed_date', { ascending: true })
+    .limit(5000)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   if (!txs || txs.length === 0) return NextResponse.json({ subscriptions: [] })
 
