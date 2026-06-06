@@ -37,7 +37,7 @@ export default function Sidebar({ email, displayName }: { email: string; display
   }
 
   return (
-    <aside className="relative flex h-full w-[84px] flex-shrink-0 flex-col overflow-hidden border-r border-white/[0.08] bg-[#080d18]/80 px-3 py-5 backdrop-blur-2xl sm:w-[260px] sm:px-4">
+    <aside className="relative flex h-full w-[84px] flex-shrink-0 flex-col overflow-hidden border-r border-white/[0.08] bg-[#00101d]/78 px-3 py-5 backdrop-blur-2xl sm:w-[230px] sm:px-4">
       <div className="pointer-events-none absolute -left-28 top-24 h-64 w-64 rounded-full bg-lumen-accent/15 blur-3xl" />
       <div className="pointer-events-none absolute bottom-16 right-0 h-44 w-44 rounded-full bg-lumen-success/10 blur-3xl" />
 
@@ -50,7 +50,7 @@ export default function Sidebar({ email, displayName }: { email: string; display
         <LumenLogo size={31} className="hidden sm:block" />
       </Link>
 
-      <nav className="relative z-10 flex-1 space-y-1.5">
+      <nav className="relative z-10 flex-1 space-y-2">
         {NAV.map(({ href, label, Icon }) => {
           const active = pathname === href
           return (
@@ -58,10 +58,10 @@ export default function Sidebar({ email, displayName }: { email: string; display
               <motion.div
                 whileHover={{ x: 2 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-                className={`relative flex h-12 items-center justify-center gap-3 overflow-hidden rounded-2xl px-3.5 text-sm font-semibold transition-colors sm:justify-start ${
+                className={`relative flex min-h-12 items-center justify-center gap-3 overflow-hidden rounded-[20px] px-3.5 text-sm font-bold transition-colors sm:justify-start ${
                   active
-                    ? 'bg-lumen-accent text-white shadow-accent-glow-sm'
-                    : 'text-lumen-muted hover:bg-white/[0.07] hover:text-lumen-text'
+                    ? 'bg-white/14 text-white shadow-accent-glow-sm ring-1 ring-white/12'
+                    : 'text-lumen-muted hover:bg-white/[0.08] hover:text-lumen-text'
                 }`}
               >
                 {active && (
@@ -71,7 +71,7 @@ export default function Sidebar({ email, displayName }: { email: string; display
                     transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                   />
                 )}
-                <span className={`relative flex h-8 w-8 items-center justify-center rounded-xl ${active ? 'bg-white/18' : 'bg-white/[0.04]'}`}>
+                <span className={`relative flex h-9 w-9 items-center justify-center rounded-2xl ${active ? 'bg-lumen-accent text-white' : 'bg-white/[0.07]'}`}>
                   <Icon size={17} strokeWidth={active ? 2.25 : 1.9} />
                 </span>
                 <span className="relative hidden sm:inline">{label}</span>
