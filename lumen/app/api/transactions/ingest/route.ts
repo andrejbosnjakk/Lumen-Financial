@@ -66,14 +66,23 @@ export async function POST(request: NextRequest) {
     .select('completed_date, description, amount')
     .eq('user_id', user.id)
 
+  // Normalize key components so type/format differences don't break matching:
+  // - date: take only the YYYY-MM-DD portion (handles TIMESTAMPTZ vs raw CSV string)
+  // - amount: fixed 2 decimal string (handles Supabase NUMERIC string vs JS float)
+  function txKey(completed_date: string, description: string, amount: string | number) {
+    const date = String(completed_date).split('T')[0].split(' ')[0]
+    const amt = Number(amount).toFixed(2)
+    return `${date}|${description.trim()}|${amt}`
+  }
+
   const existingKeys = new Set(
-    (existing ?? []).map((t) => `${t.completed_date}|${t.description}|${t.amount}`)
+    (existing ?? []).map((t) => txKey(t.completed_date, t.description, t.amount))
   )
 
   const newRows = []
   let duplicates = 0
   for (const tx of parsed) {
-    const key = `${tx.completed_date}|${tx.description}|${tx.amount}`
+    const key = txKey(tx.completed_date, tx.description, tx.amount)
     if (existingKeys.has(key)) {
       duplicates++
     } else {
