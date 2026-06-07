@@ -147,8 +147,8 @@ export default function UploadModal({ onClose, onSuccess }: Props) {
   const bankLabel = currentBank ? BANKS.find(b => b.id === currentBank)?.label ?? currentBank : null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4 backdrop-blur-sm">
-      <div className="lumen-panel w-full max-w-md rounded-[24px] p-6 shadow-accent-glow">
+    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/55 px-4 pb-4 backdrop-blur-sm sm:items-center sm:pb-0">
+      <div className="lumen-panel w-full max-w-md rounded-[24px] p-6 shadow-accent-glow max-h-[90vh] overflow-y-auto">
         <div className="mb-5 flex items-center justify-between">
           <div>
             {state.status !== 'bank_select' && (

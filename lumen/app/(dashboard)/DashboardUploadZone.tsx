@@ -254,14 +254,14 @@ export default function DashboardUploadZone() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4 backdrop-blur-sm"
+            className="fixed inset-0 z-[60] flex items-end justify-center bg-black/55 px-4 pb-4 backdrop-blur-sm sm:items-center sm:pb-0"
           >
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0, y: 16 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 16 }}
               transition={{ duration: 0.18 }}
-              className="lumen-panel w-full max-w-sm rounded-[24px] p-6 shadow-accent-glow"
+              className="lumen-panel w-full max-w-sm rounded-[24px] p-6 shadow-accent-glow max-h-[85vh] overflow-y-auto"
             >
               <div className="mb-4 flex items-center justify-between">
                 <div>

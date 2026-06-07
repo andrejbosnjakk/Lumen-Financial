@@ -27,7 +27,7 @@ function BankBadge({ id, label }: { id: BankId; label: string }) {
   const initials = label.replace('Bank', '').replace('Netherlands', '').trim().slice(0, 3).toUpperCase()
 
   return (
-    <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-[11px] font-bold ${colours[id] ?? 'bg-lumen-fill text-lumen-text'}`}>
+    <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-[10px] font-bold ${colours[id] ?? 'bg-lumen-fill text-lumen-text'}`}>
       {initials}
     </div>
   )
@@ -35,8 +35,8 @@ function BankBadge({ id, label }: { id: BankId; label: string }) {
 
 export default function BankSelector({ banks, acceptPdf = true, onSelect, onCancel }: Props) {
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-2">
+    <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-1.5">
         {banks.map((bank) => {
           const csvOnly = !bank.acceptedFormats.includes('.pdf')
           const pdfOnly = !bank.acceptedFormats.includes('.csv')
@@ -46,11 +46,11 @@ export default function BankSelector({ banks, acceptPdf = true, onSelect, onCanc
             <button
               key={bank.id}
               onClick={() => onSelect(bank.id)}
-              className="flex items-center gap-3 rounded-xl border border-lumen-border bg-lumen-fill px-3 py-2.5 text-left transition-colors hover:border-lumen-accent/40 hover:bg-lumen-surface-2"
+              className="flex items-center gap-2.5 rounded-xl border border-lumen-border bg-lumen-fill px-2.5 py-2 text-left transition-colors hover:border-lumen-accent/40 hover:bg-lumen-surface-2"
             >
               <BankBadge id={bank.id} label={bank.label} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-medium text-lumen-text">{bank.label}</p>
+                <p className="truncate text-[12px] font-medium text-lumen-text">{bank.label}</p>
                 {badge && (
                   <p className="text-[10px] text-lumen-muted">{badge} only</p>
                 )}
