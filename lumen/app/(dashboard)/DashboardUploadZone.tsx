@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState, useCallback, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BarChart2, CheckCircle2, Tags, Upload, X } from 'lucide-react'
@@ -247,39 +248,42 @@ export default function DashboardUploadZone() {
         )}
       </motion.div>
 
-      {/* Bank picker modal */}
-      <AnimatePresence>
-        {phase === 'bank_select' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] flex items-end justify-center bg-black/55 px-4 pb-4 backdrop-blur-sm sm:items-center sm:pb-0"
-          >
+      {/* Bank picker — portal to document.body to escape transform stacking contexts */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {phase === 'bank_select' && (
             <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 16 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 16 }}
-              transition={{ duration: 0.18 }}
-              className="lumen-panel w-full max-w-sm rounded-[24px] p-6 shadow-accent-glow max-h-[85vh] overflow-y-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[200] flex items-end justify-center bg-black/55 px-4 pb-4 backdrop-blur-sm sm:items-center sm:pb-0"
             >
-              <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <p className="text-[11px] font-medium text-lumen-accent">Import transactions</p>
-                  <h2 className="text-base font-semibold text-lumen-text">Select your bank</h2>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.18 }}
+                className="lumen-panel w-full max-w-sm rounded-[24px] p-6 shadow-accent-glow max-h-[80vh] overflow-y-auto"
+              >
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-[11px] font-medium text-lumen-accent">Import transactions</p>
+                    <h2 className="text-base font-semibold text-lumen-text">Select your bank</h2>
+                  </div>
+                  <button
+                    onClick={() => setPhase('idle')}
+                    className="flex h-8 w-8 items-center justify-center rounded-xl text-lumen-muted transition-colors hover:bg-lumen-fill hover:text-lumen-text"
+                  >
+                    <X size={15} />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setPhase('idle')}
-                  className="flex h-8 w-8 items-center justify-center rounded-xl text-lumen-muted transition-colors hover:bg-lumen-fill hover:text-lumen-text"
-                >
-                  <X size={15} />
-                </button>
-              </div>
-              <BankSelector banks={BANKS} onSelect={handleBankSelect} />
+                <BankSelector banks={BANKS} onSelect={handleBankSelect} />
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   )
 }

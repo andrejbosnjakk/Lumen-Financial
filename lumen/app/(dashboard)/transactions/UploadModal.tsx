@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import Papa from 'papaparse'
 import { BANKS, getParser, detectBank } from '@/lib/parsers'
@@ -146,9 +147,11 @@ export default function UploadModal({ onClose, onSuccess }: Props) {
 
   const bankLabel = currentBank ? BANKS.find(b => b.id === currentBank)?.label ?? currentBank : null
 
-  return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/55 px-4 pb-4 backdrop-blur-sm sm:items-center sm:pb-0">
-      <div className="lumen-panel w-full max-w-md rounded-[24px] p-6 shadow-accent-glow max-h-[90vh] overflow-y-auto">
+  if (typeof document === 'undefined') return null
+
+  const modal = (
+    <div className="fixed inset-0 z-[200] flex items-end justify-center bg-black/55 px-4 pb-4 backdrop-blur-sm sm:items-center sm:pb-0">
+      <div className="lumen-panel w-full max-w-md rounded-[24px] p-6 shadow-accent-glow max-h-[80vh] overflow-y-auto">
         <div className="mb-5 flex items-center justify-between">
           <div>
             {state.status !== 'bank_select' && (
@@ -274,4 +277,6 @@ export default function UploadModal({ onClose, onSuccess }: Props) {
       </div>
     </div>
   )
+
+  return createPortal(modal, document.body)
 }
