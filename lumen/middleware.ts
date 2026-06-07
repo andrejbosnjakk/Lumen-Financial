@@ -30,9 +30,10 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/signup')
   const isLanding = pathname === '/'
+  const isLegalRoute = pathname.startsWith('/terms') || pathname.startsWith('/privacy')
   const isApiRoute = pathname.startsWith('/api')
 
-  if (!user && !isAuthRoute && !isLanding) {
+  if (!user && !isAuthRoute && !isLanding && !isLegalRoute) {
     if (isApiRoute) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
