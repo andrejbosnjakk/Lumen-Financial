@@ -18,6 +18,7 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -30,6 +31,7 @@ function LoginForm() {
       setLoading(false)
       return
     }
+    localStorage.setItem('lumen_remember_me', String(rememberMe))
     router.push('/dashboard')
     router.refresh()
   }
@@ -109,6 +111,16 @@ function LoginForm() {
                   placeholder="Enter your password"
                 />
               </div>
+
+              <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 rounded border border-lumen-border bg-lumen-fill accent-lumen-accent cursor-pointer"
+                />
+                <span className="text-sm text-lumen-muted">Remember me for 24 hours</span>
+              </label>
 
               {message && (
                 <div className="rounded-2xl border border-lumen-accent/25 bg-lumen-accent/10 px-4 py-3 text-sm text-lumen-text">{message}</div>

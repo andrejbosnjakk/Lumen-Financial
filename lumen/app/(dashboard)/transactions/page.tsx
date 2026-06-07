@@ -24,6 +24,8 @@ export default function TransactionsPage() {
   const [error, setError] = useState<string | null>(null)
   const [savingId, setSavingId] = useState<string | null>(null)
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
+  const [deletingAll, setDeletingAll] = useState(false)
+  const [confirmDeleteAll, setConfirmDeleteAll] = useState(false)
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -104,6 +106,22 @@ export default function TransactionsPage() {
     }
   }
 
+  async function handleDeleteAll() {
+    setDeletingAll(true)
+    try {
+      const res = await fetch('/api/transactions', { method: 'DELETE' })
+      if (!res.ok) throw new Error()
+      setTransactions([])
+      setCount(0)
+      setPage(1)
+    } catch {
+      fetchTransactions()
+    } finally {
+      setDeletingAll(false)
+      setConfirmDeleteAll(false)
+    }
+  }
+
   async function handleEditSave(id: string, updates: Partial<Transaction>) {
     const res = await fetch(`/api/transactions/${id}`, {
       method: 'PATCH',
@@ -128,7 +146,17 @@ export default function TransactionsPage() {
             <p className="mt-2 text-sm leading-6 text-lumen-muted">{count} total</p>
           )}
         </div>
-        <CsvUploadButton onUploadSuccess={() => { setPage(1); fetchTransactions() }} />
+        <div className="flex items-center gap-2">
+          {count > 0 && (
+            <button
+              onClick={() => setConfirmDeleteAll(true)}
+              className="px-3 py-1.5 text-[13px] font-medium text-lumen-danger border border-lumen-danger/40 rounded-lg hover:bg-lumen-danger/10 transition-colors"
+            >
+              Delete All
+            </button>
+          )}
+          <CsvUploadButton onUploadSuccess={() => { setPage(1); fetchTransactions() }} />
+        </div>
       </div>
 
       <FilterBar
@@ -199,6 +227,33 @@ export default function TransactionsPage() {
           onSave={handleEditSave}
           onClose={() => setEditingTx(null)}
         />
+      )}
+
+      {confirmDeleteAll && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-lumen-surface border border-lumen-border rounded-2xl p-6 w-full max-w-sm shadow-xl">
+            <h2 className="text-base font-semibold text-lumen-text mb-2">Delete all transactions?</h2>
+            <p className="text-[13px] text-lumen-muted mb-5">
+              This will permanently delete all {count} transactions and their categorizations. This cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmDeleteAll(false)}
+                disabled={deletingAll}
+                className="px-4 py-2 text-[13px] font-medium text-lumen-muted hover:text-lumen-text transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAll}
+                disabled={deletingAll}
+                className="px-4 py-2 text-[13px] font-medium text-white bg-lumen-danger rounded-lg hover:opacity-90 disabled:opacity-50 transition-opacity"
+              >
+                {deletingAll ? 'Deleting…' : 'Delete All'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

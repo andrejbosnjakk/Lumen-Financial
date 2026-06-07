@@ -65,3 +65,21 @@ export async function GET(request: NextRequest) {
     categories: Array.from(categories).sort((a, b) => a.localeCompare(b)),
   })
 }
+
+export async function DELETE() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { error } = await supabase
+    .from('transactions')
+    .delete()
+    .eq('user_id', user.id)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return NextResponse.json({ success: true })
+}
