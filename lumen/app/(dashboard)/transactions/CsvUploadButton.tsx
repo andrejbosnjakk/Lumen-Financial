@@ -1,12 +1,14 @@
 'use client'
 
 import { forwardRef, useRef, useState, useCallback, useEffect, useImperativeHandle } from 'react'
-import { motion } from 'framer-motion'
-import { Upload } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Upload, X } from 'lucide-react'
 import Papa from 'papaparse'
-import { validateColumns, type RevolutRow } from '@/lib/ingester'
+import { BANKS, getParser, detectBank } from '@/lib/parsers'
+import type { BankId, NormalisedRow } from '@/lib/parsers'
 import { clearAnalyticsCache } from '@/lib/analyticsCache'
 import type { IngestResult } from '@/lib/types'
+import BankSelector from './BankSelector'
 
 interface Props {
   onUploadSuccess: () => void
@@ -37,6 +39,8 @@ function stageLabel(progress: number): string {
 
 const CsvUploadButton = forwardRef<CsvUploadHandle, Props>(function CsvUploadButton({ onUploadSuccess }, ref) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const [showPicker, setShowPicker] = useState(false)
+  const [selectedBank, setSelectedBank] = useState<BankId | null>(null)
   const [uploading, setUploading] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const [status, setStatus] = useState<Status | null>(null)
@@ -64,47 +68,121 @@ const CsvUploadButton = forwardRef<CsvUploadHandle, Props>(function CsvUploadBut
     setProgress(100)
   }
 
-  const processFile = useCallback(async (file: File) => {
+  async function uploadNormalisedRows(rows: NormalisedRow[], filename: string, bank: BankId) {
+    setUploading(true)
+    startProgress()
+    try {
+      const res = await fetch('/api/transactions/ingest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rows, filename, source: bank }),
+      })
+      const json = (await res.json()) as IngestResult & { error?: string }
+      if (!res.ok) throw new Error(json.error ?? 'Upload failed')
+      finishProgress()
+      setStatus({ type: 'success', message: uploadMessage(json) })
+      clearAnalyticsCache()
+      onUploadSuccess()
+    } catch (err: unknown) {
+      setStatus({ type: 'error', message: err instanceof Error ? err.message : 'Upload failed' })
+    } finally {
+      setUploading(false)
+      setTimeout(() => setProgress(0), 800)
+    }
+  }
+
+  async function uploadPdf(file: File, bank: BankId) {
+    setUploading(true)
+    startProgress()
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('bank', bank)
+      const res = await fetch('/api/transactions/ingest/pdf', { method: 'POST', body: formData })
+      const json = (await res.json()) as IngestResult & { error?: string }
+      if (!res.ok) throw new Error(json.error ?? 'PDF upload failed')
+      finishProgress()
+      setStatus({ type: 'success', message: uploadMessage(json) })
+      clearAnalyticsCache()
+      onUploadSuccess()
+    } catch (err: unknown) {
+      setStatus({ type: 'error', message: err instanceof Error ? err.message : 'PDF upload failed' })
+    } finally {
+      setUploading(false)
+      setTimeout(() => setProgress(0), 800)
+    }
+  }
+
+  const processFile = useCallback(async (file: File, bankOverride?: BankId) => {
     setStatus(null)
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      setStatus({ type: 'error', message: 'File must be a .csv' })
+    const bank = bankOverride ?? selectedBank
+    const isPdf = file.name.toLowerCase().endsWith('.pdf')
+    const isCsv = file.name.toLowerCase().endsWith('.csv')
+
+    if (!isPdf && !isCsv) {
+      setStatus({ type: 'error', message: 'File must be a .csv or .pdf' })
       return
     }
-    Papa.parse<RevolutRow>(file, {
+
+    if (!bank) {
+      // No bank selected yet — show picker, then come back
+      setShowPicker(true)
+      return
+    }
+
+    if (isPdf) {
+      await uploadPdf(file, bank)
+      return
+    }
+
+    // CSV path
+    Papa.parse<Record<string, string>>(file, {
       header: true,
       skipEmptyLines: true,
       complete: async (results) => {
         const headers = (results.meta.fields ?? []) as string[]
-        if (!validateColumns(headers)) {
-          setStatus({ type: 'error', message: 'Invalid CSV — missing required Revolut columns.' })
+        const delimiter = results.meta.delimiter ?? ','
+
+        // Validate: detect actual bank and warn if it doesn't match selection
+        const detected = detectBank(headers, delimiter)
+        if (detected && detected !== bank) {
+          const detectedLabel = BANKS.find(b => b.id === detected)?.label ?? detected
+          const chosenLabel = BANKS.find(b => b.id === bank)?.label ?? bank
+          setStatus({
+            type: 'error',
+            message: `This looks like a ${detectedLabel} file, but you selected ${chosenLabel}. Please re-select your bank.`,
+          })
+          setSelectedBank(null)
+          setShowPicker(true)
           return
         }
-        setUploading(true)
-        startProgress()
+
         try {
-          const res = await fetch('/api/transactions/ingest', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rows: results.data, filename: file.name }),
-          })
-          const json = (await res.json()) as IngestResult & { error?: string }
-          if (!res.ok) throw new Error(json.error ?? 'Upload failed')
-          finishProgress()
-          setStatus({ type: 'success', message: uploadMessage(json) })
-          clearAnalyticsCache()
-          onUploadSuccess()
+          const parser = getParser(bank)
+          const rows = parser(results.data)
+          if (rows.length === 0) {
+            setStatus({ type: 'error', message: 'No valid transactions found in this file.' })
+            return
+          }
+          await uploadNormalisedRows(rows, file.name, bank)
         } catch (err: unknown) {
-          setStatus({ type: 'error', message: err instanceof Error ? err.message : 'Upload failed' })
-        } finally {
-          setUploading(false)
-          setTimeout(() => setProgress(0), 800)
+          setStatus({ type: 'error', message: err instanceof Error ? err.message : 'Failed to parse file.' })
         }
       },
       error: () => setStatus({ type: 'error', message: 'Failed to parse CSV.' }),
+      delimiter: '',  // auto-detect
     })
-  }, [onUploadSuccess])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedBank, onUploadSuccess])
 
   useImperativeHandle(ref, () => ({ processFile }), [processFile])
+
+  function handleBankSelect(bank: BankId) {
+    setSelectedBank(bank)
+    setShowPicker(false)
+    // Open file input for the selected bank
+    setTimeout(() => inputRef.current?.click(), 50)
+  }
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault()
@@ -120,11 +198,18 @@ const CsvUploadButton = forwardRef<CsvUploadHandle, Props>(function CsvUploadBut
     processFile(file)
   }
 
+  function handleButtonClick() {
+    if (uploading) return
+    setStatus(null)
+    setShowPicker(true)
+  }
+
   return (
     <div className="flex w-full flex-col items-stretch gap-1.5 sm:w-auto sm:items-end">
-      <input ref={inputRef} type="file" accept=".csv" onChange={handleFileChange} className="hidden" />
+      <input ref={inputRef} type="file" accept=".csv,.pdf" onChange={handleFileChange} className="hidden" />
+
       <motion.button
-        onClick={() => !uploading && inputRef.current?.click()}
+        onClick={handleButtonClick}
         onDrop={handleDrop}
         onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
         onDragLeave={() => setDragOver(false)}
@@ -150,10 +235,9 @@ const CsvUploadButton = forwardRef<CsvUploadHandle, Props>(function CsvUploadBut
         ) : (
           <Upload size={14} />
         )}
-        {uploading ? 'Uploading…' : dragOver ? 'Drop to upload' : 'Upload CSV'}
+        {uploading ? 'Uploading…' : dragOver ? 'Drop to upload' : 'Import transactions'}
       </motion.button>
 
-      {/* Progress bar — visible while uploading */}
       {uploading && (
         <div className="w-full sm:w-44">
           <div className="flex items-center justify-between mb-1">
@@ -175,6 +259,40 @@ const CsvUploadButton = forwardRef<CsvUploadHandle, Props>(function CsvUploadBut
           {status.message}
         </p>
       )}
+
+      {/* Bank picker overlay */}
+      <AnimatePresence>
+        {showPicker && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className="lumen-panel w-full max-w-sm rounded-[24px] p-6 shadow-accent-glow"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] font-medium text-lumen-accent">Import transactions</p>
+                  <h2 className="text-base font-semibold text-lumen-text">Select your bank</h2>
+                </div>
+                <button
+                  onClick={() => setShowPicker(false)}
+                  className="flex h-8 w-8 items-center justify-center rounded-xl text-lumen-muted transition-colors hover:bg-lumen-fill hover:text-lumen-text"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+              <BankSelector banks={BANKS} onSelect={handleBankSelect} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 })

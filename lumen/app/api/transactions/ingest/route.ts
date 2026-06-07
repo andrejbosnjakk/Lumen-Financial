@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { parseRow, type RevolutRow } from '@/lib/ingester'
 import { categorize } from '@/lib/categorizer'
 import {
   modelConfidenceThreshold,
   predictCategories,
 } from '@/lib/mlCategorizer'
 import type { CategoryRule } from '@/lib/types'
+import type { NormalisedRow, BankId } from '@/lib/parsers'
 
 const LEGACY_APP_CATEGORIES = new Set([
   'Groceries',
@@ -30,14 +30,14 @@ export async function POST(request: NextRequest) {
 
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  let body: { rows: RevolutRow[]; filename: string }
+  let body: { rows: NormalisedRow[]; filename: string; source: BankId }
   try {
     body = await request.json()
   } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  const { rows, filename } = body
+  const { rows, filename, source } = body
   if (!Array.isArray(rows) || !filename) {
     return NextResponse.json({ error: 'Missing rows or filename' }, { status: 400 })
   }
@@ -61,24 +61,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to create import batch' }, { status: 500 })
   }
 
-  // Parse rows — drops non-COMPLETED and malformed rows
-  const staged: { row: RevolutRow; category: string }[] = []
+  // Stage rows with rule-based categories
+  const staged: { row: NormalisedRow; category: string }[] = []
   const modelTargets: { stagedIndex: number; description: string; amount: number; completed_date: string }[] = []
   const parsed = []
   let failed = 0
 
   for (const row of rows) {
-    const description = row.Description ?? ''
-    const amount = Number(row.Amount)
+    const description = row.description ?? ''
+    const amount = Number(row.amount)
     const category = categorize(description, rules)
     const stagedIndex = staged.push({ row, category }) - 1
 
-    if (description.trim() && Number.isFinite(amount) && row.State === 'COMPLETED') {
+    if (description.trim() && Number.isFinite(amount)) {
       modelTargets.push({
         stagedIndex,
         description,
         amount,
-        completed_date: row['Completed Date'] || row['Started Date'],
+        completed_date: row.date,
       })
     }
   }
@@ -110,12 +110,27 @@ export async function POST(request: NextRequest) {
   }
 
   for (const { row, category } of staged) {
-    const tx = parseRow(row, user.id, batch.id, category)
-    if (tx) {
-      parsed.push(tx)
-    } else {
+    if (!row.description?.trim() || !Number.isFinite(row.amount)) {
       failed++
+      continue
     }
+    parsed.push({
+      user_id: user.id,
+      source: source ?? 'unknown',
+      type: row.type ?? 'PAYMENT',
+      product: null,
+      started_date: row.date,
+      completed_date: row.date,
+      description: row.description.trim(),
+      amount: row.amount,
+      fee: 0,
+      currency: row.currency ?? 'EUR',
+      state: 'COMPLETED',
+      balance_after_transaction: row.balance_after ?? null,
+      category,
+      is_recurring: false,
+      import_batch_id: batch.id,
+    })
   }
 
   if (parsed.length === 0) {
