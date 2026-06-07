@@ -79,7 +79,7 @@ export default function SignupPage() {
               Understand your finances, clearly.
             </h1>
             <p className="mt-6 max-w-lg text-base leading-7 text-lumen-muted">
-              Upload a Revolut CSV, get instant categorization, and see exactly where your money goes.
+              Upload a bank statement, get instant categorization, and see exactly where your money goes.
             </p>
           </div>
 

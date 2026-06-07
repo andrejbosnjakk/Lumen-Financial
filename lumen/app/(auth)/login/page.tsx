@@ -224,7 +224,7 @@ function AuthVisual() {
             Financial clarity,<br />illuminated.
           </h2>
           <p className="mt-6 max-w-lg text-base leading-7 text-lumen-muted">
-            Upload your Revolut CSV and get instant categorization, spending analytics, and clean financial insights.
+            Upload your bank statement and get instant categorization, spending analytics, and clean financial insights.
           </p>
         </div>
 

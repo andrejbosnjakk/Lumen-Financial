@@ -41,7 +41,7 @@ export default async function DashboardPage() {
         <div className="mb-8 max-w-2xl">
           <p className="text-sm font-medium text-lumen-accent">{greeting}, {name}</p>
           <h1 className="mt-2 text-3xl font-semibold text-lumen-text sm:text-4xl">
-            Import a Revolut CSV.
+            Import a bank statement.
           </h1>
           <p className="mt-3 text-sm leading-6 text-lumen-muted">
             Upload a statement to create transactions, balances, and category summaries.
@@ -182,7 +182,7 @@ export default async function DashboardPage() {
             </div>
             <div>
               <p className="text-sm font-semibold text-lumen-text">Import transactions</p>
-              <p className="text-xs text-lumen-muted">Upload a Revolut CSV export</p>
+              <p className="text-xs text-lumen-muted">Upload a bank statement (CSV or PDF)</p>
             </div>
           </Link>
           {stats.map(({ label, value, Icon, tone, bg }) => (

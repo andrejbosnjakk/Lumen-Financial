@@ -10,8 +10,8 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  title: 'Lumen - Revolut CSV dashboard',
-  description: 'Import, categorize, and review Revolut CSV transactions.',
+  title: 'Lumen - Personal finance dashboard',
+  description: 'Import, categorize, and review your bank transactions.',
   icons: { icon: '/brand/lumen-symbol-pixel-faithful.png' },
 }
 

@@ -169,7 +169,7 @@ export default function TransactionsPage() {
         <div className="absolute inset-0 z-40 flex items-center justify-center rounded-[28px] border-2 border-dashed border-lumen-accent/60 bg-lumen-accent/[0.07] backdrop-blur-[2px] pointer-events-none">
           <div className="text-center">
             <p className="text-lg font-semibold text-lumen-accent">Drop CSV to import</p>
-            <p className="mt-1 text-sm text-lumen-muted">Revolut account statement</p>
+            <p className="mt-1 text-sm text-lumen-muted">Bank account statement</p>
           </div>
         </div>
       )}

@@ -115,7 +115,7 @@ export default async function AccountPage() {
               <FileText size={20} />
             </div>
             <p className="text-sm font-semibold text-lumen-text">No imports yet</p>
-            <p className="mt-1 text-sm text-lumen-muted">Upload a Revolut CSV to start building history.</p>
+            <p className="mt-1 text-sm text-lumen-muted">Upload a bank statement to start building history.</p>
           </div>
         ) : (
           <div className="divide-y divide-lumen-border">

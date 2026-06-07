@@ -7,7 +7,7 @@ const features = [
   {
     Icon: FileUp,
     title: 'One-click import',
-    body: 'Export from Revolut, drop it in Lumen. Duplicates are detected automatically - import as often as you like.',
+    body: 'Export from your bank, drop it in Lumen. Duplicates are detected automatically - import as often as you like.',
   },
   {
     Icon: Sparkles,
@@ -37,7 +37,7 @@ const features = [
 ]
 
 const steps = [
-  { number: '01', title: 'Export from Revolut', body: 'Go to Revolut > Statements > Export account statement as CSV.' },
+  { number: '01', title: 'Export from your bank', body: 'Download a CSV or PDF statement from your bank (Revolut, ING, Rabobank, and more).' },
   { number: '02', title: 'Upload to Lumen', body: 'Drop the file on the dashboard. Transactions are parsed, deduplicated, and categorized in seconds.' },
   { number: '03', title: 'Explore your insights', body: 'Browse analytics, correct any labels, and export a PDF report.' },
 ]
@@ -99,7 +99,7 @@ export default async function LandingPage() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-xl text-base leading-7 text-lumen-muted sm:text-lg">
-            Upload your Revolut CSV export and get instant categorization, spending analytics, and clean financial insights.
+            Upload your bank statement and get instant categorization, spending analytics, and clean financial insights.
           </p>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
@@ -132,7 +132,7 @@ export default async function LandingPage() {
 
           {!user && (
             <p className="mt-5 text-xs text-lumen-muted/60">
-              No credit card required - Works with standard Revolut CSV exports
+              No credit card required - Works with CSV & PDF exports from 10+ banks
             </p>
           )}
         </div>
@@ -194,7 +194,7 @@ export default async function LandingPage() {
                 Ready to illuminate your finances?
               </h2>
               <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-lumen-muted">
-                Create a free account, upload your Revolut statement, and get a complete picture of your spending in under a minute.
+                Create a free account, upload your bank statement, and get a complete picture of your spending in under a minute.
               </p>
               <Link
                 href={user ? '/dashboard' : '/signup'}

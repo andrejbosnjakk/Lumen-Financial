@@ -434,7 +434,7 @@ export default function BehavioralInsights() {
     <div className="space-y-5">
       <div>
         <h2 className="text-lg font-semibold text-lumen-text">Smart Insights</h2>
-        <p className="mt-1 text-sm text-lumen-muted">Patterns Revolut does not show you.</p>
+        <p className="mt-1 text-sm text-lumen-muted">Patterns your bank does not show you.</p>
       </div>
       <SmallLeaks data={data.smallLeaks} />
       <CategoryDrift data={data.categoryDrift} chartTheme={chartTheme} />
