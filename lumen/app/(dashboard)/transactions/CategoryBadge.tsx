@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { categoryColor } from '@/lib/categoryColors'
+import { useColorMode } from '@/lib/useColorMode'
 import { CATEGORIES } from '@/lib/categories'
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
 export default function CategoryBadge({ category, saving, onSelect }: Props) {
   const [editing, setEditing] = useState(false)
   const selectRef = useRef<HTMLSelectElement>(null)
+  const mode = useColorMode()
 
   useEffect(() => {
     if (editing) selectRef.current?.focus()
@@ -34,7 +36,7 @@ export default function CategoryBadge({ category, saving, onSelect }: Props) {
     )
   }
 
-  const color = categoryColor(category)
+  const color = categoryColor(category, mode)
 
   return (
     <button

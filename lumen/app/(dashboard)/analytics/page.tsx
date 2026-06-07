@@ -26,6 +26,7 @@ import type { AnalyticsData } from '@/lib/types'
 import { getCachedAnalytics, setCachedAnalytics } from '@/lib/analyticsCache'
 import { useChartTheme, type ChartTheme } from '@/lib/useChartTheme'
 import { categoryColor } from '@/lib/categoryColors'
+import { useColorMode } from '@/lib/useColorMode'
 
 function fmt(n: number) {
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(n)
@@ -131,6 +132,7 @@ function CustomTooltip({
 
 export default function AnalyticsPage() {
   const chartTheme = useChartTheme()
+  const colorMode = useColorMode()
   const [period, setPeriod] = useState<Period>('month')
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -371,7 +373,7 @@ export default function AnalyticsPage() {
                       <PieChart>
                         <defs>
                           {compactCategoryData.map((d) => {
-                            const color = categoryColor(d.name)
+                            const color = categoryColor(d.name, colorMode)
                             return (
                               <linearGradient key={d.name} id={`category-${d.name.replace(/[^a-zA-Z0-9]/g, '-')}`} x1="0" x2="1" y1="0" y2="1">
                                 <stop offset="0%" stopColor={color.text} stopOpacity={0.95} />
@@ -412,7 +414,7 @@ export default function AnalyticsPage() {
 
                   <div className="space-y-2">
                     {compactCategoryData.map((d, i) => {
-                      const color = categoryColor(d.name)
+                      const color = categoryColor(d.name, colorMode)
                       const pct = categoryTotal > 0 ? (d.value / categoryTotal) * 100 : 0
                       return (
                         <div key={d.name} className="rounded-2xl bg-lumen-fill-sm px-3 py-2.5">
