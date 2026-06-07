@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { categoryColor } from '@/lib/categoryColors'
+import { CATEGORIES } from '@/lib/categories'
 
 interface Props {
   category: string
@@ -11,35 +12,25 @@ interface Props {
 
 export default function CategoryBadge({ category, saving, onSelect }: Props) {
   const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(category)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const selectRef = useRef<HTMLSelectElement>(null)
 
   useEffect(() => {
-    if (!editing) return
-    setDraft(category)
-    inputRef.current?.focus()
-    inputRef.current?.select()
-  }, [category, editing])
-
-  function commit() {
-    const next = draft.trim() || 'Uncategorized'
-    if (next !== category) onSelect(next)
-    setEditing(false)
-  }
+    if (editing) selectRef.current?.focus()
+  }, [editing])
 
   if (editing) {
     return (
-      <input
-        ref={inputRef}
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') commit()
-          if (e.key === 'Escape') setEditing(false)
-        }}
-        className="h-7 w-56 rounded-lg border border-lumen-border bg-lumen-surface-2 px-2 text-[11px] text-lumen-text focus:border-lumen-accent focus:outline-none"
-      />
+      <select
+        ref={selectRef}
+        defaultValue={category}
+        onChange={(e) => { onSelect(e.target.value); setEditing(false) }}
+        onBlur={() => setEditing(false)}
+        className="h-7 rounded-lg border border-lumen-border bg-lumen-surface-2 px-2 text-[11px] text-lumen-text focus:border-lumen-accent focus:outline-none"
+      >
+        {CATEGORIES.map(c => (
+          <option key={c} value={c}>{c}</option>
+        ))}
+      </select>
     )
   }
 

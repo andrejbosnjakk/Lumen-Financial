@@ -58,3 +58,54 @@ create policy "user owns import_batches"
 create policy "user owns category_rules"
   on category_rules for all
   using (auth.uid() = user_id);
+
+-- Portfolio broker imports
+create table if not exists broker_imports (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid references auth.users(id) on delete cascade,
+  broker      text not null,
+  filename    text,
+  imported_at timestamptz default now()
+);
+
+create table if not exists broker_positions (
+  id              uuid primary key default gen_random_uuid(),
+  import_id       uuid references broker_imports(id) on delete cascade,
+  user_id         uuid references auth.users(id) on delete cascade,
+  broker          text not null,
+  symbol          text not null,
+  isin            text,
+  name            text,
+  quantity        numeric(18, 8) not null,
+  avg_cost        numeric(18, 4) not null,
+  statement_price numeric(18, 4),
+  yahoo_ticker    text,
+  currency        text not null default 'EUR'
+);
+
+alter table broker_imports  enable row level security;
+alter table broker_positions enable row level security;
+
+create policy "user owns broker_imports"
+  on broker_imports for all
+  using (auth.uid() = user_id);
+
+create policy "user owns broker_positions"
+  on broker_positions for all
+  using (auth.uid() = user_id);
+
+-- AI provider settings (Groq key for symbol resolution)
+create table if not exists user_ai_settings (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid references auth.users(id) on delete cascade,
+  provider   text not null,
+  api_key    text not null,
+  created_at timestamptz default now(),
+  unique (user_id, provider)
+);
+
+alter table user_ai_settings enable row level security;
+
+create policy "user owns ai_settings"
+  on user_ai_settings for all
+  using (auth.uid() = user_id);

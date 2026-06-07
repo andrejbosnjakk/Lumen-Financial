@@ -227,8 +227,16 @@ async function resolveYahooSymbols(tickers: string[], groqKey?: string | null): 
 
   if (missing.length === 0) return resolved
 
+  // Tickers without underscores are already Yahoo-compatible — resolve them instantly
+  const needsLLM = missing.filter(t => t.includes('_'))
+  const trivial  = missing.filter(t => !t.includes('_'))
+  for (const ticker of trivial) {
+    resolved[ticker] = ticker
+    symbolCache.set(ticker, { symbol: ticker, expiresAt: now + SYMBOL_TTL })
+  }
+
   let groqMap: Record<string, string> = {}
-  if (groqKey) {
+  if (needsLLM.length > 0 && groqKey) {
     try {
       const client = new OpenAI({ apiKey: groqKey, baseURL: 'https://api.groq.com/openai/v1' })
       const response = await client.chat.completions.create({
@@ -246,16 +254,16 @@ async function resolveYahooSymbols(tickers: string[], groqKey?: string | null): 
               'If the input is already a Yahoo Finance symbol, return it unchanged.',
             ].join(' '),
           },
-          { role: 'user', content: JSON.stringify({ tickers: missing }) },
+          { role: 'user', content: JSON.stringify({ tickers: needsLLM }) },
         ],
       })
-      groqMap = parseSymbolMap(response.choices[0]?.message?.content ?? '{}', missing)
+      groqMap = parseSymbolMap(response.choices[0]?.message?.content ?? '{}', needsLLM)
     } catch (err) {
       console.warn('[portfolio/risk] Groq symbol resolution failed:', err)
     }
   }
 
-  for (const ticker of missing) {
+  for (const ticker of needsLLM) {
     const symbol = groqMap[ticker] ?? groqMap[cleanTicker(ticker)] ?? deterministicYahooGuess(ticker)
     resolved[ticker] = symbol
     symbolCache.set(ticker, { symbol, expiresAt: now + SYMBOL_TTL })
@@ -311,31 +319,29 @@ async function fetchMeta(ticker: string, depth = 0): Promise<TickerMeta> {
       if (Object.keys(sw).length > 0) meta.etfSectorWeights = sw
     }
 
-    // ── Country weights from top holdings (depth=0 only to avoid deep recursion) ──
+    // ── Country weights (depth=0 only to avoid deep recursion) ──
     if (depth === 0) {
-      type Holding = { symbol: string; holdingPercent: unknown }
-      const holdings = ((topHolding.holdings as Holding[]) ?? [])
-        .slice(0, 25)
-        .map(h => ({ symbol: h.symbol, weight: holdingWeight(h.holdingPercent) }))
-        .filter(h => h.symbol && h.weight > 0)
-
-      if (holdings.length > 0) {
-        const cw: Record<string, number> = {}
-        const BATCH = 4
-        for (let i = 0; i < holdings.length; i += BATCH) {
-          const slice = holdings.slice(i, i + BATCH)
-          const results = await Promise.all(
-            slice.map(h => fetchMeta(h.symbol, 1).then(m => ({ ...h, country: m.country })))
-          )
-          for (const r of results) {
-            addWeight(cw, r.country, r.weight)
-          }
-        }
-        if (Object.keys(cw).length > 0) meta.etfCountryWeights = normalizeWeights(cw)
-      }
-
+      // Check static inference first — saves all network round-trips for known ETFs
       const inferred = inferEtfCountryWeights(meta.name ?? (fundProfile?.categoryName as string) ?? null, ticker)
-      if (inferred) meta.etfCountryWeights = inferred
+      if (inferred) {
+        meta.etfCountryWeights = inferred
+      } else {
+        // Fallback: derive country weights by looking through top holdings in parallel
+        type Holding = { symbol: string; holdingPercent: unknown }
+        const holdings = ((topHolding.holdings as Holding[]) ?? [])
+          .slice(0, 25)
+          .map(h => ({ symbol: h.symbol, weight: holdingWeight(h.holdingPercent) }))
+          .filter(h => h.symbol && h.weight > 0)
+
+        if (holdings.length > 0) {
+          const results = await Promise.all(
+            holdings.map(h => fetchMeta(h.symbol, 1).then(m => ({ ...h, country: m.country })))
+          )
+          const cw: Record<string, number> = {}
+          for (const r of results) addWeight(cw, r.country, r.weight)
+          if (Object.keys(cw).length > 0) meta.etfCountryWeights = normalizeWeights(cw)
+        }
+      }
     }
 
   } else if (profile) {
@@ -382,15 +388,12 @@ async function fetchBestMeta(originalTicker: string, resolvedSymbol: string): Pr
 }
 
 async function batchFetch(symbolsByTicker: Record<string, string>): Promise<Record<string, TickerMeta>> {
-  const result: Record<string, TickerMeta> = {}
-  const entries = Object.entries(symbolsByTicker)
-  const BATCH = 4
-  for (let i = 0; i < entries.length; i += BATCH) {
-    const slice = entries.slice(i, i + BATCH)
-    const pairs = await Promise.all(slice.map(([ticker, symbol]) => fetchBestMeta(ticker, symbol).then(m => [ticker, m] as const)))
-    for (const [ticker, meta] of pairs) result[ticker] = meta
-  }
-  return result
+  const pairs = await Promise.all(
+    Object.entries(symbolsByTicker).map(([ticker, symbol]) =>
+      fetchBestMeta(ticker, symbol).then(m => [ticker, m] as const)
+    )
+  )
+  return Object.fromEntries(pairs)
 }
 
 export async function GET(request: Request) {
