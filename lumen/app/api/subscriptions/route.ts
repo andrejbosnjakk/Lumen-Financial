@@ -213,6 +213,23 @@ function shouldReviewAsZombie(sub: Subscription, charges: Charge[], key: string,
   return cheapMonthly && (longRunning || quietEnoughToForget)
 }
 
+function compareActiveSubscriptions(
+  a: { sub: Subscription; hinted: boolean; staleDays: number },
+  b: { sub: Subscription; hinted: boolean; staleDays: number },
+) {
+  if (a.hinted !== b.hinted) return a.hinted ? -1 : 1
+  if (a.staleDays !== b.staleDays) return a.staleDays - b.staleDays
+  if (a.sub.monthlyEquivalent !== b.sub.monthlyEquivalent) return b.sub.monthlyEquivalent - a.sub.monthlyEquivalent
+  return a.sub.description.localeCompare(b.sub.description)
+}
+
+function compareZombieSubscriptions(a: ZombieSubscription, b: ZombieSubscription) {
+  if (a.zombieReason !== b.zombieReason) return a.zombieReason === 'overdue' ? -1 : 1
+  if (a.staleDays !== b.staleDays) return b.staleDays - a.staleDays
+  if (a.monthlyEquivalent !== b.monthlyEquivalent) return b.monthlyEquivalent - a.monthlyEquivalent
+  return a.description.localeCompare(b.description)
+}
+
 export async function GET() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -250,7 +267,7 @@ export async function GET() {
   }
 
   const now = Date.now()
-  const subscriptions: Subscription[] = []
+  const subscriptions: { sub: Subscription; hinted: boolean; staleDays: number }[] = []
   const zombies: ZombieSubscription[] = []
   const seen = new Set<string>()
 
@@ -264,17 +281,17 @@ export async function GET() {
 
     const staleDays = Math.round((now - new Date(sub.lastCharge).getTime()) / 86_400_000)
     const activeLimit = MAX_ACTIVE_STALE_DAYS[sub.frequency]
+    const hinted = charges.some((charge) => hasSubscriptionHint(charge, key))
 
-    if (staleDays <= activeLimit) {
-      subscriptions.push(sub)
-      if (shouldReviewAsZombie(sub, charges, key, staleDays)) {
-        zombies.push({
-          ...sub,
-          staleDays,
-          zombieReason: 'forgotten',
-        })
-      }
-    } else if (staleDays <= activeLimit * 2.25) {
+    subscriptions.push({ sub, hinted, staleDays })
+
+    if (staleDays <= activeLimit && shouldReviewAsZombie(sub, charges, key, staleDays)) {
+      zombies.push({
+        ...sub,
+        staleDays,
+        zombieReason: 'forgotten',
+      })
+    } else if (staleDays > activeLimit && staleDays <= activeLimit * 2.25) {
       zombies.push({
         ...sub,
         staleDays,
@@ -283,11 +300,11 @@ export async function GET() {
     }
   }
 
-  subscriptions.sort((a, b) => b.monthlyEquivalent - a.monthlyEquivalent)
-  zombies.sort((a, b) => b.monthlyEquivalent - a.monthlyEquivalent)
+  subscriptions.sort(compareActiveSubscriptions)
+  zombies.sort(compareZombieSubscriptions)
 
   return NextResponse.json({
-    subscriptions: subscriptions.slice(0, 20),
+    subscriptions: subscriptions.slice(0, 20).map(({ sub }) => sub),
     zombies: zombies.slice(0, 12),
   })
 }

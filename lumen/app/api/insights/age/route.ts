@@ -7,19 +7,6 @@ import type { AgeComparison } from '@/lib/types'
 export type { AgeComparison }
 
 const VALID_AGE_GROUPS = ['18-24', '25-34', '35-44', '45-54', '55-64', '65-74', '75+']
-const CATEGORY_ALIASES: Record<string, string> = {
-  'Restaurants & Food': 'Dining',
-  Restaurant: 'Dining',
-  Restaurants: 'Dining',
-  Food: 'Dining',
-  Fitness: 'Health',
-  Healthcare: 'Health',
-  Medical: 'Health',
-  Utilities: 'Housing',
-  Rent: 'Housing',
-  Other: 'Other',
-}
-
 let benchmarkCache: Record<string, Record<string, number>> | null = null
 
 function getBenchmarks(): Record<string, Record<string, number>> {
@@ -32,7 +19,79 @@ function getBenchmarks(): Record<string, Record<string, number>> {
 
 function normalizeCategory(category: string | null) {
   const raw = (category || 'Other').trim()
-  return CATEGORY_ALIASES[raw] ?? raw
+  const normalized = raw
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+
+  if (!normalized || normalized === 'uncategorized') return 'Other'
+  if (normalized.includes('transfer') || normalized.includes('allowance') || normalized.includes('salary')) return 'Other'
+  if (normalized.includes('grocery') || normalized.includes('supermarket')) return 'Groceries'
+  if (
+    normalized.includes('transport') ||
+    normalized.includes('commuter') ||
+    normalized.includes('rail') ||
+    normalized.includes('bus') ||
+    normalized.includes('taxicab') ||
+    normalized.includes('parking') ||
+    normalized.includes('airline') ||
+    normalized.includes('fuel') ||
+    normalized.includes('service station')
+  ) return 'Transport'
+  if (
+    normalized.includes('digital goods') ||
+    normalized.includes('software') ||
+    normalized.includes('streaming') ||
+    normalized.includes('subscription') ||
+    normalized.includes('telecom') ||
+    normalized.includes('membership')
+  ) return 'Subscriptions'
+  if (
+    normalized.includes('restaurant') ||
+    normalized.includes('eating place') ||
+    normalized.includes('drinking place') ||
+    normalized.includes('bar') ||
+    normalized.includes('cafe')
+  ) return 'Dining'
+  if (
+    normalized.includes('medical') ||
+    normalized.includes('health') ||
+    normalized.includes('pharmacy') ||
+    normalized.includes('drug store') ||
+    normalized.includes('hospital') ||
+    normalized.includes('sports') ||
+    normalized.includes('recreation')
+  ) return 'Health'
+  if (
+    normalized.includes('retail') ||
+    normalized.includes('department store') ||
+    normalized.includes('clothing') ||
+    normalized.includes('apparel') ||
+    normalized.includes('electronics') ||
+    normalized.includes('specialty')
+  ) return 'Shopping'
+  if (
+    normalized.includes('entertainment') ||
+    normalized.includes('gaming') ||
+    normalized.includes('movie') ||
+    normalized.includes('theatre') ||
+    normalized.includes('club')
+  ) return 'Entertainment'
+  if (
+    normalized.includes('utility') ||
+    normalized.includes('electric') ||
+    normalized.includes('gas') ||
+    normalized.includes('water')
+  ) return 'Utilities'
+  if (
+    normalized.includes('rent') ||
+    normalized.includes('housing') ||
+    normalized.includes('mortgage') ||
+    normalized.includes('hotel') ||
+    normalized.includes('lodging')
+  ) return 'Housing'
+
+  return 'Other'
 }
 
 export async function GET(request: Request) {
@@ -62,7 +121,6 @@ export async function GET(request: Request) {
   const categoryTotals: Record<string, number> = {}
   for (const tx of txs) {
     const cat = normalizeCategory(tx.category)
-    if (cat === 'Income' || cat === 'Transfers' || cat === 'Savings') continue
     categoryTotals[cat] = (categoryTotals[cat] ?? 0) + Math.abs(Number(tx.amount))
   }
 

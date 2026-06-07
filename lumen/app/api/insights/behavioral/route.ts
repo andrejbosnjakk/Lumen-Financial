@@ -10,10 +10,45 @@ import type {
   IncomeCandidate,
 } from '@/lib/types'
 
-const ESSENTIAL = new Set(['Groceries', 'Transport', 'Utilities', 'Healthcare'])
-const DISCRETIONARY = new Set([
-  'Restaurants & Food', 'Entertainment', 'Subscriptions', 'Fitness', 'Shopping',
-])
+const ESSENTIAL_PATTERNS = [
+  'grocery',
+  'supermarket',
+  'transport',
+  'commuter',
+  'rail',
+  'bus',
+  'taxicab',
+  'parking',
+  'fuel',
+  'service station',
+  'utility',
+  'electric',
+  'telecom',
+  'medical',
+  'health',
+  'pharmacy',
+  'drug store',
+  'hospital',
+]
+
+const DISCRETIONARY_PATTERNS = [
+  'restaurant',
+  'eating place',
+  'bar',
+  'cafe',
+  'digital goods',
+  'entertainment',
+  'recreation',
+  'sports',
+  'subscription',
+  'specialty retail',
+  'department store',
+  'clothing',
+  'apparel',
+  'electronics',
+  'hobby',
+  'gaming',
+]
 
 function dateStr(d: Date): string {
   return d.toISOString().split('T')[0]
@@ -34,6 +69,21 @@ function monthsAgo(n: number): string {
   d.setMonth(d.getMonth() - n)
   d.setDate(1)
   return dateStr(d)
+}
+
+function normalizeCategory(category: string | null | undefined) {
+  return String(category ?? '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+}
+
+function spendingGroup(category: string | null | undefined): 'essential' | 'discretionary' | null {
+  const normalized = normalizeCategory(category)
+  if (!normalized || normalized === 'uncategorized') return null
+  if (ESSENTIAL_PATTERNS.some((pattern) => normalized.includes(pattern))) return 'essential'
+  if (DISCRETIONARY_PATTERNS.some((pattern) => normalized.includes(pattern))) return 'discretionary'
+  return null
 }
 
 export async function GET(request: Request) {
@@ -91,11 +141,15 @@ export async function GET(request: Request) {
   }
 
   // ── 2. Category Drift ─────────────────────────────────────────────────────
-  const now = new Date()
-  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  const expenseMonths = txs
+    .filter(tx => Number(tx.amount) < 0 && tx.completed_date)
+    .map(tx => monthOf(tx.completed_date))
+    .sort()
+  const currentMonth = expenseMonths[expenseMonths.length - 1] ?? monthOf(dateStr(new Date()))
   const prevMonths: string[] = []
+  const [currentYear, currentMonthIndex] = currentMonth.split('-').map(Number)
   for (let i = 1; i <= 3; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const d = new Date(currentYear, currentMonthIndex - 1 - i, 1)
     prevMonths.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
   }
 
@@ -121,6 +175,7 @@ export async function GET(request: Request) {
   for (const cat of allCats) {
     const current = curByCat[cat] ?? 0
     const prevAmounts = Object.values(prevByCatMonth[cat] ?? {})
+    if (current < 5) continue
     if (prevAmounts.length === 0) continue
     const avgMonthly = prevAmounts.reduce((a, b) => a + b, 0) / prevMonths.length
     if (avgMonthly < 5) continue
@@ -177,7 +232,7 @@ export async function GET(request: Request) {
   // transfers aren't excluded.
   const incomeTxs = salaryDesc
     ? candidateRows.filter(tx => String(tx.description ?? '').trim() === salaryDesc)
-    : txs.filter(tx => Number(tx.amount) > 200)
+    : candidateRows.filter(tx => Number(tx.amount) > 200)
 
   let paydaySplurge: PaydaySplurgeData | null = null
 
@@ -233,8 +288,9 @@ export async function GET(request: Request) {
     const mo = monthOf(tx.completed_date)
     if (!ratioByMonth[mo]) ratioByMonth[mo] = { essential: 0, discretionary: 0 }
     const amt = Math.abs(Number(tx.amount))
-    if (ESSENTIAL.has(cat)) ratioByMonth[mo].essential += amt
-    else if (DISCRETIONARY.has(cat)) ratioByMonth[mo].discretionary += amt
+    const group = spendingGroup(cat)
+    if (group === 'essential') ratioByMonth[mo].essential += amt
+    else if (group === 'discretionary') ratioByMonth[mo].discretionary += amt
   }
 
   const essentialRatio: EssentialRatioMonth[] = Object.entries(ratioByMonth)
