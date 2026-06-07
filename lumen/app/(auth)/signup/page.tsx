@@ -17,6 +17,7 @@ export default function SignupPage() {
   const [dob, setDob] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -217,6 +218,39 @@ export default function SignupPage() {
                 <PasswordStrengthMeter password={password} />
               </div>
 
+              <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-lumen-border bg-lumen-fill p-4 transition-colors hover:border-lumen-accent/40">
+                <input
+                  type="checkbox"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 flex-shrink-0 cursor-pointer accent-lumen-accent"
+                  required
+                />
+                <span className="text-[13px] leading-6 text-lumen-muted">
+                  I have read and agree to the{' '}
+                  <a
+                    href="/terms"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold text-lumen-text underline underline-offset-2 hover:text-lumen-accent"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Terms of Service
+                  </a>{' '}
+                  and{' '}
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold text-lumen-text underline underline-offset-2 hover:text-lumen-accent"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Privacy Policy
+                  </a>
+                  , including the processing of my financial data as described.
+                </span>
+              </label>
+
               {error && (
                 <div className="rounded-2xl border border-lumen-danger/25 bg-lumen-danger/10 px-4 py-3 text-sm text-lumen-danger">
                   {error}
@@ -225,7 +259,7 @@ export default function SignupPage() {
 
               <motion.button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !agreedToTerms}
                 whileTap={{ scale: 0.98 }}
                 className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-lumen-accent px-4 text-sm font-semibold text-white shadow-accent-glow-sm transition-colors hover:bg-lumen-accent-dim disabled:cursor-not-allowed disabled:opacity-55"
               >
