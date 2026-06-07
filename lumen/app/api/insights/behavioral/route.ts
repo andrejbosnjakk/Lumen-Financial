@@ -104,7 +104,7 @@ export async function GET(request: Request) {
       .order('completed_date', { ascending: true }),
     supabase
       .from('transactions')
-      .select('amount, description, completed_date, started_at')
+      .select('amount, description, completed_date, started_date')
       .eq('user_id', user.id)
       .gt('amount', 0),
   ])
@@ -239,9 +239,9 @@ export async function GET(request: Request) {
   if (incomeTxs.length > 0) {
     const postPaydayDates = new Set<string>()
     for (const inc of incomeTxs) {
-      const dateStr = (inc.completed_date ?? (inc as Record<string, unknown>).started_at ?? '')
-      if (!dateStr) continue
-      const base = new Date(String(dateStr).substring(0, 10) + 'T12:00:00')
+      const incDate = (inc.completed_date ?? (inc as Record<string, unknown>).started_date ?? '')
+      if (!incDate) continue
+      const base = new Date(String(incDate).substring(0, 10) + 'T12:00:00')
       for (let d = 0; d <= 6; d++) {
         const day = new Date(base)
         day.setDate(day.getDate() + d)
