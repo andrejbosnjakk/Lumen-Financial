@@ -67,7 +67,7 @@ const KNOWN_SUBSCRIPTION_TERMS = [
 ]
 
 const SUBSCRIPTION_CATEGORY_PATTERNS = [
-  /apps?/,
+  /\bapps?\b/,
   /application/,
   /cable/,
   /cloud/,
@@ -131,6 +131,15 @@ function normalizeMerchant(description: string) {
     .trim()
 }
 
+// A curated brand match is strong enough to surface a subscription on its own.
+// A category-pattern match only loosens thresholds for series that already
+// look recurring — it must never create a subscription from a single charge.
+function isKnownSubscriptionBrand(charge: Charge, key: string) {
+  const search = `${key} ${charge.description.toLowerCase()} ${(charge.category ?? '').toLowerCase()}`
+  if (NON_SUBSCRIPTION_PATTERNS.some((pattern) => pattern.test(search))) return false
+  return KNOWN_SUBSCRIPTION_TERMS.some((term) => search.includes(term))
+}
+
 function hasSubscriptionHint(charge: Charge, key: string) {
   const description = charge.description.toLowerCase()
   const category = (charge.category ?? '').toLowerCase()
@@ -162,19 +171,22 @@ function amountLooksRecurring(amounts: number[], hinted: boolean) {
 function buildSubscription(charges: Charge[], key: string): Subscription | null {
   const sorted = [...charges].sort((a, b) => a.date.localeCompare(b.date))
   const hinted = sorted.some((charge) => hasSubscriptionHint(charge, key))
+  const knownBrand = sorted.some((charge) => isKnownSubscriptionBrand(charge, key))
   const amounts = sorted.map((charge) => charge.amount)
   const gaps = sorted.slice(1).map((charge, i) => daysBetween(sorted[i].date, charge.date))
-  const frequency = detectFrequency(gaps) ?? (hinted ? 'monthly' : null)
+  // Cadence must be proven from the charge gaps. Only curated brands may fall
+  // back to "monthly" without it — a category hint alone never invents one.
+  const frequency = detectFrequency(gaps) ?? (knownBrand ? 'monthly' : null)
 
   if (!frequency) return null
   if (!amountLooksRecurring(amounts, hinted)) return null
 
   const minCount = frequency === 'weekly' ? 3 : 2
-  if (sorted.length < minCount && !hinted) return null
+  if (sorted.length < minCount && !knownBrand) return null
 
   // A single known subscription charge should still surface as a candidate;
   // many demo CSVs only include the current month.
-  if (sorted.length < minCount && hinted) {
+  if (sorted.length < minCount && knownBrand) {
     const latest = sorted[sorted.length - 1]
     const monthlyEquivalent = Math.round(latest.amount * MONTHLY_MULTIPLIER.monthly * 100) / 100
     return {
@@ -266,7 +278,11 @@ export async function GET() {
     groups.get(key)!.push(charge)
   }
 
-  const now = Date.now()
+  // A CSV export is a historical snapshot — measure staleness against the most
+  // recent transaction in the data, not the wall clock. Otherwise every
+  // subscription looks "overdue" once the export ages a cycle or two.
+  const datasetEnd = new Date(String(txs[txs.length - 1].completed_date)).getTime()
+  const now = Number.isFinite(datasetEnd) ? datasetEnd : Date.now()
   const subscriptions: { sub: Subscription; hinted: boolean; staleDays: number }[] = []
   const zombies: ZombieSubscription[] = []
   const seen = new Set<string>()
