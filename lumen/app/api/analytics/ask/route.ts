@@ -120,9 +120,14 @@ export async function POST(request: Request) {
     .eq('user_id', user.id)
     .maybeSingle()
 
-  if (!aiSettings) {
+  // Fall back to the app's shared Groq key if the user hasn't set their own
+  const isAppFallback = !aiSettings
+  const provider = aiSettings?.provider ?? 'groq'
+  const apiKey = aiSettings?.api_key ?? process.env.GROQ_API_KEY
+
+  if (!apiKey) {
     return NextResponse.json(
-      { error: 'No AI provider configured. Set one up in Account settings.' },
+      { error: 'No AI provider available. Add an API key in Account settings.' },
       { status: 400 }
     )
   }
@@ -142,9 +147,9 @@ ${context}`
   ]
 
   try {
-    if (aiSettings.provider === 'groq') {
+    if (provider === 'groq') {
       const client = new OpenAI({
-        apiKey: aiSettings.api_key,
+        apiKey,
         baseURL: 'https://api.groq.com/openai/v1',
       })
       const response = await client.chat.completions.create({
@@ -156,8 +161,8 @@ ${context}`
       return NextResponse.json({ answer })
     }
 
-    if (aiSettings.provider === 'anthropic') {
-      const client = new Anthropic({ apiKey: aiSettings.api_key })
+    if (provider === 'anthropic') {
+      const client = new Anthropic({ apiKey })
       const response = await client.messages.create({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 1024,
@@ -168,8 +173,8 @@ ${context}`
       return NextResponse.json({ answer })
     }
 
-    if (aiSettings.provider === 'openai') {
-      const client = new OpenAI({ apiKey: aiSettings.api_key })
+    if (provider === 'openai') {
+      const client = new OpenAI({ apiKey })
       const response = await client.chat.completions.create({
         model: 'gpt-4o-mini',
         max_tokens: 1024,
@@ -187,7 +192,10 @@ ${context}`
       return NextResponse.json({ error: 'API key rejected — check it in Account settings.' }, { status: 401 })
     }
     if (msg.includes('insufficient_quota') || msg.includes('exceeded your current quota') || msg.includes('credit balance is too low')) {
-      return NextResponse.json({ error: 'Your API quota is exhausted — add credits to your provider account or switch providers in Account settings.' }, { status: 402 })
+      const quotaMsg = isAppFallback
+        ? 'The shared Groq key hit its rate limit — add your own free Groq key in Account settings for uninterrupted access.'
+        : 'Your API quota is exhausted — add credits to your provider account or switch providers in Account settings.'
+      return NextResponse.json({ error: quotaMsg }, { status: 402 })
     }
     if (msg.includes('rate_limit_exceeded') || msg.includes('Rate limit reached')) {
       return NextResponse.json({ error: 'Rate limited — wait a few seconds and try again.' }, { status: 429 })

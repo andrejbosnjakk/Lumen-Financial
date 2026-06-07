@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowUp, Bot, Loader2, Settings2 } from 'lucide-react'
+import { ArrowUp, Bot, Loader2, Settings2, Sparkles } from 'lucide-react'
 
 type Message = { role: 'user' | 'assistant'; content: string }
 type Period = 'week' | 'month' | '3months' | 'year' | 'all'
@@ -19,6 +19,7 @@ interface Props { period: Period }
 
 export default function FinancialChat({ period }: Props) {
   const [configured, setConfigured] = useState<boolean | null>(null)
+  const [hasAppFallback, setHasAppFallback] = useState(false)
   const [providerName, setProviderName] = useState<string>('')
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -33,6 +34,7 @@ export default function FinancialChat({ period }: Props) {
       .then(r => r.json())
       .then(d => {
         setConfigured(d.configured ?? false)
+        setHasAppFallback(d.hasAppFallback ?? false)
         if (d.configured) {
           const names: Record<string, string> = { groq: 'Groq - Llama 3.3', anthropic: 'Claude', openai: 'ChatGPT' }
           setProviderName(names[d.provider] ?? d.provider)
@@ -93,12 +95,38 @@ export default function FinancialChat({ period }: Props) {
     }
   }
 
+  // Not yet loaded
   if (configured === null) return null
+
+  // No own key and no app fallback — truly unavailable
+  const aiAvailable = configured || hasAppFallback
+  if (!aiAvailable) return (
+    <section className="lumen-panel rounded-[28px] p-5 sm:p-6">
+      <div className="mb-5 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-lumen-accent/10 text-lumen-accent">
+            <Bot size={18} />
+          </div>
+          <p className="text-sm font-semibold text-lumen-text">Ask AI</p>
+        </div>
+      </div>
+      <div className="rounded-2xl border border-lumen-border bg-lumen-fill-sm p-6 text-center">
+        <p className="text-sm font-semibold text-lumen-text">AI assistant unavailable</p>
+        <p className="mt-2 text-[13px] text-lumen-muted">
+          Add a free{' '}
+          <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-lumen-accent hover:underline">Groq</a>
+          {' '}key in{' '}
+          <Link href="/account" className="text-lumen-accent hover:underline">Account settings</Link>{' '}
+          to start asking questions about your finances.
+        </p>
+      </div>
+    </section>
+  )
 
   return (
     <section className="lumen-panel rounded-[28px] p-5 sm:p-6">
       {/* Header */}
-      <div className="mb-5 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-lumen-accent/10 text-lumen-accent">
             <Bot size={18} />
@@ -108,6 +136,9 @@ export default function FinancialChat({ period }: Props) {
             {configured && providerName && (
               <p className="mt-0.5 text-[11px] text-lumen-muted">Powered by {providerName}</p>
             )}
+            {!configured && hasAppFallback && (
+              <p className="mt-0.5 text-[11px] text-lumen-muted">Shared Groq key</p>
+            )}
           </div>
         </div>
         <Link
@@ -115,27 +146,26 @@ export default function FinancialChat({ period }: Props) {
           className="flex items-center gap-1.5 rounded-xl border border-lumen-border px-3 py-1.5 text-[12px] text-lumen-muted hover:text-lumen-text transition-colors"
         >
           <Settings2 size={12} />
-          {configured ? 'Change' : 'Set up'}
+          {configured ? 'Change' : 'Add your key'}
         </Link>
       </div>
 
-      {/* Not configured */}
-      {!configured && (
-        <div className="rounded-2xl border border-lumen-border bg-lumen-fill-sm p-6 text-center">
-          <p className="text-sm font-semibold text-lumen-text">No AI provider connected</p>
-          <p className="mt-2 text-[13px] text-lumen-muted">
-            Connect a free{' '}
-            <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-lumen-accent hover:underline">Groq</a>
-            {' '}key or a Claude/ChatGPT key in{' '}
-            <Link href="/account" className="text-lumen-accent hover:underline">Account settings</Link>{' '}
-            to start asking questions about your finances.
+      {/* Soft nudge when on shared key */}
+      {!configured && hasAppFallback && (
+        <div className="mb-4 flex items-start gap-2.5 rounded-2xl border border-lumen-accent/20 bg-lumen-accent/[0.06] px-4 py-3">
+          <Sparkles size={13} className="mt-0.5 shrink-0 text-lumen-accent" />
+          <p className="text-[12px] text-lumen-muted">
+            You&apos;re using Lumen&apos;s shared AI — it works, but may occasionally hit rate limits.{' '}
+            <Link href="/account" className="font-medium text-lumen-accent hover:underline">
+              Add your own free Groq key
+            </Link>{' '}
+            for dedicated, unlimited access.
           </p>
         </div>
       )}
 
       {/* Chat */}
-      {configured && (
-        <div className="space-y-4">
+      <div className="space-y-4">
           {/* Suggestions - shown until first message */}
           {messages.length === 0 && (
             <div className="flex flex-wrap gap-2">
@@ -221,9 +251,8 @@ export default function FinancialChat({ period }: Props) {
               {loading ? <Loader2 size={16} className="animate-spin" /> : <ArrowUp size={16} />}
             </button>
           </div>
-          <p className="text-[11px] text-lumen-muted/60">Enter to send - Shift+Enter for newline</p>
+          <p className="text-[11px] text-lumen-muted/60">Enter to send · Shift+Enter for newline</p>
         </div>
-      )}
     </section>
   )
 }

@@ -6,15 +6,17 @@ import FinancialChat from './FinancialChat'
 import SubscriptionTracker from './SubscriptionTracker'
 import ZombieTracker from './ZombieTracker'
 import AgeComparison from './AgeComparison'
+import BehavioralInsights from './BehavioralInsights'
 import {
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
-  Line,
-  LineChart,
+  Area,
+  AreaChart,
   Pie,
   PieChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -27,6 +29,12 @@ import { categoryColor } from '@/lib/categoryColors'
 
 function fmt(n: number) {
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(n)
+}
+
+function shortFmt(n: number) {
+  const abs = Math.abs(n)
+  if (abs >= 1000) return `EUR ${(n / 1000).toFixed(abs >= 10000 ? 0 : 1)}k`
+  return `EUR ${Math.round(n)}`
 }
 
 type Period = 'week' | 'month' | '3months' | 'year' | 'all'
@@ -225,10 +233,24 @@ export default function AnalyticsPage() {
         .sort((a, b) => b.value - a.value)
     : []
 
+  const categoryTotal = categoryData.reduce((sum, item) => sum + item.value, 0)
+  const primaryCategory = categoryData[0]
+  const compactCategoryData = (() => {
+    if (categoryData.length <= 7) return categoryData
+    const visible = categoryData.slice(0, 6)
+    const otherValue = categoryData.slice(6).reduce((sum, item) => sum + item.value, 0)
+    return otherValue > 0
+      ? [...visible, { name: 'Other categories', value: Math.round(otherValue * 100) / 100 }]
+      : visible
+  })()
+
   const savingsData = data?.byMonth.map((m) => ({
     month: m.month,
     savings: Math.round((m.income - m.expenses) * 100) / 100,
   })) ?? []
+  const netSavingsTotal = savingsData.reduce((sum, item) => sum + item.savings, 0)
+  const bestSavings = savingsData.reduce((best, item) => item.savings > best.savings ? item : best, savingsData[0] ?? { month: '', savings: 0 })
+  const worstSavings = savingsData.reduce((worst, item) => item.savings < worst.savings ? item : worst, savingsData[0] ?? { month: '', savings: 0 })
 
   const hasData = !!data && data.totalIncome + data.totalExpenses > 0
 
@@ -242,7 +264,7 @@ export default function AnalyticsPage() {
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center">
           {hasData && (
             <button
               onClick={handleExport}
@@ -254,18 +276,20 @@ export default function AnalyticsPage() {
             </button>
           )}
 
-          <div className="flex overflow-hidden rounded-2xl border border-lumen-border bg-lumen-fill">
+          <div className="-mx-1 flex max-w-full overflow-x-auto px-1 pb-1">
+          <div className="flex min-w-max overflow-hidden rounded-2xl border border-lumen-border bg-lumen-fill">
             {PERIODS.map(({ key, label }, i) => (
               <button
                 key={key}
                 onClick={() => setPeriod(key)}
-                className={`min-h-11 px-3 text-xs font-semibold transition-colors sm:px-3.5 sm:text-sm ${
+                className={`min-h-11 shrink-0 px-3 text-xs font-semibold transition-colors sm:px-3.5 sm:text-sm ${
                   i < PERIODS.length - 1 ? 'border-r border-lumen-border' : ''
                 } ${period === key ? 'bg-lumen-accent text-white' : 'text-lumen-muted hover:bg-lumen-fill hover:text-lumen-text'}`}
               >
                 {label}
               </button>
             ))}
+          </div>
           </div>
         </div>
       </div>
@@ -312,12 +336,12 @@ export default function AnalyticsPage() {
                   <p className="mt-1 text-xs text-lumen-muted">Cash movement over the selected period.</p>
                 </div>
               </div>
-              <ResponsiveContainer width="100%" height={280}>
+              <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={data.byMonth} barCategoryGap="25%">
                   <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
                   <XAxis dataKey="month" tickFormatter={(k) => formatTick(k, granularity, period)} interval={interval} tick={{ fontSize: 11, fill: chartTheme.axis }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: chartTheme.axis }} tickFormatter={(v) => `EUR ${v}`} axisLine={false} tickLine={false} width={62} />
-                  <Tooltip content={<CustomTooltip granularity={granularity} period={period} chartTheme={chartTheme} />} />
+                  <YAxis tick={{ fontSize: 11, fill: chartTheme.axis }} tickFormatter={(v) => shortFmt(Number(v))} axisLine={false} tickLine={false} width={58} />
+                  <Tooltip cursor={{ fill: chartTheme.cursor }} content={<CustomTooltip granularity={granularity} period={period} chartTheme={chartTheme} />} />
                   <Bar dataKey="income" name="Income" fill="#10B981" radius={[6, 6, 0, 0]} />
                   <Bar dataKey="expenses" name="Expenses" fill="var(--lumen-accent)" radius={[6, 6, 0, 0]} />
                 </BarChart>
@@ -327,49 +351,146 @@ export default function AnalyticsPage() {
 
           <div className="grid gap-5 xl:grid-cols-2">
             {categoryData.length > 0 && (
-              <section className="lumen-panel rounded-[28px] p-5 sm:p-6">
-                <h2 className="text-sm font-semibold text-lumen-text">Spending by category</h2>
-                <p className="mt-1 text-xs text-lumen-muted">Grouped transaction spend.</p>
-                <ResponsiveContainer width="100%" height={265}>
-                  <PieChart>
-                    <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={62} outerRadius={92} paddingAngle={3}>
-                      {categoryData.map((d) => (
-                        <Cell key={d.name} fill={categoryColor(d.name).text} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(v) => fmt(Number(v))}
-                      contentStyle={{ background: chartTheme.tooltip.bg, border: `1px solid ${chartTheme.tooltip.border}`, borderRadius: 16, fontSize: 12, color: chartTheme.tooltip.text }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {categoryData.slice(0, 6).map((d) => (
-                    <div key={d.name} className="flex items-center justify-between gap-3 rounded-2xl bg-lumen-fill-sm px-3 py-2">
-                      <span className="flex min-w-0 items-center gap-2 text-xs text-lumen-muted">
-                        <span className="h-2.5 w-2.5 flex-shrink-0 rounded-full" style={{ background: categoryColor(d.name).text }} />
-                        <span className="truncate">{d.name}</span>
-                      </span>
-                      <span className="text-xs font-semibold text-lumen-text">{fmt(d.value)}</span>
+              <section className="lumen-panel overflow-hidden rounded-[28px]">
+                <div className="flex items-start justify-between gap-4 border-b border-lumen-border px-5 py-4 sm:px-6">
+                  <div>
+                    <h2 className="text-sm font-semibold text-lumen-text">Spending by category</h2>
+                    <p className="mt-1 text-xs text-lumen-muted">Grouped transaction spend.</p>
+                  </div>
+                  {primaryCategory && (
+                    <div className="hidden rounded-2xl bg-lumen-fill-sm px-3 py-2 text-right sm:block">
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-lumen-muted">Top category</p>
+                      <p className="mt-0.5 max-w-[170px] truncate text-xs font-semibold text-lumen-text">{primaryCategory.name}</p>
                     </div>
-                  ))}
+                  )}
+                </div>
+
+                <div className="grid gap-3 p-5 lg:grid-cols-[minmax(210px,0.82fr)_minmax(0,1fr)] lg:items-center sm:p-6">
+                  <div className="relative mx-auto h-[230px] w-full max-w-[290px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <defs>
+                          {compactCategoryData.map((d) => {
+                            const color = categoryColor(d.name)
+                            return (
+                              <linearGradient key={d.name} id={`category-${d.name.replace(/[^a-zA-Z0-9]/g, '-')}`} x1="0" x2="1" y1="0" y2="1">
+                                <stop offset="0%" stopColor={color.text} stopOpacity={0.95} />
+                                <stop offset="100%" stopColor={color.text} stopOpacity={0.55} />
+                              </linearGradient>
+                            )
+                          })}
+                        </defs>
+                        <Pie
+                          data={compactCategoryData}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={68}
+                          outerRadius={100}
+                          paddingAngle={2}
+                          stroke={chartTheme.tooltip.bg}
+                          strokeWidth={3}
+                        >
+                          {compactCategoryData.map((d) => (
+                            <Cell key={d.name} fill={`url(#category-${d.name.replace(/[^a-zA-Z0-9]/g, '-')})`} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(v) => fmt(Number(v))}
+                          contentStyle={{ background: chartTheme.tooltip.bg, border: `1px solid ${chartTheme.tooltip.border}`, borderRadius: 16, fontSize: 12, color: chartTheme.tooltip.text, boxShadow: 'none' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                      <div className="text-center">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-lumen-muted">Total spend</p>
+                        <p className="mt-1 text-xl font-semibold tabular-nums text-lumen-text">{fmt(categoryTotal)}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {compactCategoryData.map((d, i) => {
+                      const color = categoryColor(d.name)
+                      const pct = categoryTotal > 0 ? (d.value / categoryTotal) * 100 : 0
+                      return (
+                        <div key={d.name} className="rounded-2xl bg-lumen-fill-sm px-3 py-2.5">
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="flex min-w-0 items-center gap-2 text-xs text-lumen-muted">
+                              <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold" style={{ background: color.bg, color: color.text }}>
+                                {i + 1}
+                              </span>
+                              <span className="truncate" title={d.name}>{d.name}</span>
+                            </span>
+                            <span className="shrink-0 text-xs font-semibold tabular-nums text-lumen-text">{fmt(d.value)}</span>
+                          </div>
+                          <div className="mt-2 flex items-center gap-2">
+                            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-lumen-fill">
+                              <div className="h-full rounded-full" style={{ width: `${Math.max(3, pct)}%`, background: color.text }} />
+                            </div>
+                            <span className="w-10 text-right text-[10px] font-semibold tabular-nums text-lumen-muted">{pct.toFixed(0)}%</span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               </section>
             )}
 
             {savingsData.length > 0 && (
-              <section className="lumen-panel rounded-[28px] p-5 sm:p-6">
-                <h2 className="text-sm font-semibold text-lumen-text">Net savings trend</h2>
-                <p className="mt-1 text-xs text-lumen-muted">Income minus expenses over time.</p>
-                <ResponsiveContainer width="100%" height={320}>
-                  <LineChart data={savingsData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
-                    <XAxis dataKey="month" tickFormatter={(k) => formatTick(k, granularity, period)} interval={interval} tick={{ fontSize: 11, fill: chartTheme.axis }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: chartTheme.axis }} tickFormatter={(v) => `EUR ${v}`} axisLine={false} tickLine={false} width={62} />
-                    <Tooltip content={<CustomTooltip granularity={granularity} period={period} chartTheme={chartTheme} />} />
-                    <Line type="monotone" dataKey="savings" name="Net savings" stroke="var(--lumen-accent)" strokeWidth={3} dot={savingsData.length <= 14 ? { r: 3, fill: 'var(--lumen-accent)' } : false} activeDot={{ r: 5 }} />
-                  </LineChart>
-                </ResponsiveContainer>
+              <section className="lumen-panel overflow-hidden rounded-[28px]">
+                <div className="flex flex-col gap-3 border-b border-lumen-border px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+                  <div>
+                    <h2 className="text-sm font-semibold text-lumen-text">Net savings trend</h2>
+                    <p className="mt-1 text-xs text-lumen-muted">Income minus expenses over time.</p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 sm:w-[330px]">
+                    <div className="rounded-2xl bg-lumen-fill-sm px-3 py-2">
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-lumen-muted">Net</p>
+                      <p className={`mt-0.5 text-xs font-bold tabular-nums ${netSavingsTotal >= 0 ? 'text-lumen-success' : 'text-lumen-danger'}`}>
+                        {shortFmt(netSavingsTotal)}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-lumen-fill-sm px-3 py-2">
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-lumen-muted">Best</p>
+                      <p className="mt-0.5 text-xs font-bold tabular-nums text-lumen-success">{shortFmt(bestSavings.savings)}</p>
+                    </div>
+                    <div className="rounded-2xl bg-lumen-fill-sm px-3 py-2">
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-lumen-muted">Lowest</p>
+                      <p className="mt-0.5 text-xs font-bold tabular-nums text-lumen-danger">{shortFmt(worstSavings.savings)}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 sm:p-6">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={savingsData} margin={{ top: 10, right: 8, left: -4, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="savings-area" x1="0" x2="0" y1="0" y2="1">
+                          <stop offset="0%" stopColor="var(--lumen-accent)" stopOpacity={0.28} />
+                          <stop offset="70%" stopColor="var(--lumen-accent)" stopOpacity={0.06} />
+                          <stop offset="100%" stopColor="var(--lumen-accent)" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid stroke={chartTheme.grid} strokeDasharray="4 8" vertical={false} />
+                      <XAxis dataKey="month" tickFormatter={(k) => formatTick(k, granularity, period)} interval={interval} tick={{ fontSize: 11, fill: chartTheme.axis }} axisLine={false} tickLine={false} dy={8} />
+                      <YAxis tick={{ fontSize: 11, fill: chartTheme.axis }} tickFormatter={(v) => shortFmt(Number(v))} axisLine={false} tickLine={false} width={58} />
+                      <ReferenceLine y={0} stroke="rgb(var(--lumen-muted-rgb) / 0.42)" strokeDasharray="5 5" />
+                      <Tooltip cursor={{ stroke: 'rgb(var(--lumen-accent-rgb) / 0.35)', strokeWidth: 1 }} content={<CustomTooltip granularity={granularity} period={period} chartTheme={chartTheme} />} />
+                      <Area
+                        type="monotone"
+                        dataKey="savings"
+                        name="Net savings"
+                        stroke="var(--lumen-accent)"
+                        strokeWidth={3}
+                        fill="url(#savings-area)"
+                        dot={savingsData.length <= 14 ? { r: 4, fill: 'var(--lumen-accent)', stroke: chartTheme.tooltip.bg, strokeWidth: 2 } : false}
+                        activeDot={{ r: 6, fill: 'var(--lumen-accent)', stroke: 'rgb(var(--lumen-text-rgb))', strokeWidth: 2 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
               </section>
             )}
           </div>
@@ -402,6 +523,7 @@ export default function AnalyticsPage() {
           <SubscriptionTracker />
           <ZombieTracker />
           <AgeComparison />
+          <BehavioralInsights />
           <FinancialChat period={period} />
         </div>
       )}

@@ -138,6 +138,60 @@ export type AgeComparison = {
   direction: 'over' | 'under' | 'on-par'
 }
 
+// ── Behavioral insights ───────────────────────────────────────────────────────
+export type SmallLeaksData = {
+  total: number
+  count: number
+  topCategories: { category: string; total: number; count: number }[]
+}
+
+export type CategoryDriftItem = {
+  category: string
+  currentMonthly: number
+  avgMonthly: number
+  deltaPct: number
+  direction: 'up' | 'down'
+}
+
+export type AnnualProjectionItem = {
+  category: string
+  monthlyAvg: number
+  annualProjected: number
+}
+
+export type PaydaySplurgeData = {
+  avgDailyPostPayday: number
+  avgDailyOther: number
+  ratio: number
+  paydayWindowTotal: number
+  otherWindowTotal: number
+  paydayWindowDays: number
+  otherWindowDays: number
+}
+
+export type EssentialRatioMonth = {
+  month: string
+  essentialTotal: number
+  discretionaryTotal: number
+  essentialPct: number
+}
+
+export type IncomeCandidate = {
+  description: string
+  avgAmount: number
+  count: number
+}
+
+export type BehavioralInsightsData = {
+  smallLeaks: SmallLeaksData
+  categoryDrift: CategoryDriftItem[]
+  annualProjection: AnnualProjectionItem[]
+  paydaySplurge: PaydaySplurgeData | null
+  paydaySalaryDesc: string | null
+  incomeCandidates: IncomeCandidate[]
+  essentialRatio: EssentialRatioMonth[]
+}
+
 export const CATEGORIES = [
   'Groceries',
   'Transport',

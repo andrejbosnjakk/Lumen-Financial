@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { BarChart2, CheckCircle2, Tags, Upload } from 'lucide-react'
@@ -9,11 +9,40 @@ import { validateColumns, type RevolutRow } from '@/lib/ingester'
 
 type Phase = 'idle' | 'dragging' | 'uploading' | 'done' | 'error'
 
+function stageLabel(progress: number): string {
+  if (progress < 15) return 'Uploading data…'
+  if (progress < 88) return 'Categorizing transactions…'
+  return 'Saving to database…'
+}
+
 export default function DashboardUploadZone() {
   const router    = useRouter()
   const inputRef  = useRef<HTMLInputElement>(null)
   const [phase, setPhase]     = useState<Phase>('idle')
   const [message, setMessage] = useState('')
+  const [progress, setProgress] = useState(0)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  }, [])
+
+  function startProgress() {
+    setProgress(0)
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    intervalRef.current = setInterval(() => {
+      setProgress(p => {
+        if (p >= 88) return p
+        const inc = p < 30 ? 5 : p < 60 ? 2 : 0.6
+        return Math.min(p + inc, 88)
+      })
+    }, 350)
+  }
+
+  function finishProgress() {
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    setProgress(100)
+  }
 
   const processFile = useCallback(async (file: File) => {
     if (!file.name.toLowerCase().endsWith('.csv')) {
@@ -32,6 +61,7 @@ export default function DashboardUploadZone() {
           return
         }
         setPhase('uploading')
+        startProgress()
         try {
           const res  = await fetch('/api/transactions/ingest', {
             method: 'POST',
@@ -40,10 +70,12 @@ export default function DashboardUploadZone() {
           })
           const json = await res.json()
           if (!res.ok) throw new Error(json.error ?? 'Upload failed')
+          finishProgress()
           setPhase('done')
           setMessage(`Imported ${json.imported} transactions`)
           router.refresh()
         } catch (err: unknown) {
+          finishProgress()
           setPhase('error')
           setMessage(err instanceof Error ? err.message : 'Upload failed')
         }
@@ -89,15 +121,25 @@ export default function DashboardUploadZone() {
       <input ref={inputRef} type="file" accept=".csv" onChange={handleFileChange} className="hidden" />
 
       {phase === 'uploading' && (
-        <div className="space-y-4">
+        <div className="space-y-5 w-full max-w-xs mx-auto">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
             className="w-9 h-9 border-2 border-lumen-accent/25 border-t-lumen-accent rounded-full mx-auto"
           />
-          <div>
-            <p className="text-sm font-medium text-lumen-text">Parsing and categorizing...</p>
-            <p className="text-xs text-lumen-muted mt-1">Duplicates are skipped automatically</p>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-lumen-muted">{stageLabel(progress)}</p>
+              <p className="text-xs tabular-nums text-lumen-muted">{Math.round(progress)}%</p>
+            </div>
+            <div className="h-1 w-full rounded-full bg-white/[0.07] overflow-hidden">
+              <motion.div
+                className="h-full rounded-full bg-lumen-accent"
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.4, ease: 'easeOut' }}
+              />
+            </div>
+            <p className="text-[11px] text-lumen-muted/60 text-center">Duplicates are skipped automatically</p>
           </div>
         </div>
       )}

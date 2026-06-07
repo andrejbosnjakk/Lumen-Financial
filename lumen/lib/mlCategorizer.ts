@@ -1,6 +1,7 @@
 type ModelTransaction = {
   description: string
   amount?: number
+  completed_date?: string
 }
 
 export type ModelPrediction = {

@@ -12,7 +12,7 @@ export async function GET() {
     .eq('user_id', user.id)
     .maybeSingle()
 
-  if (!data) return NextResponse.json({ configured: false })
+  if (!data) return NextResponse.json({ configured: false, hasAppFallback: !!process.env.GROQ_API_KEY })
 
   const key = data.api_key as string
   const maskedKey = key.length > 8 ? `...${key.slice(-4)}` : '••••'

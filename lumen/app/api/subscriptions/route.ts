@@ -36,23 +36,67 @@ const KNOWN_SUBSCRIPTION_TERMS = [
   'adobe',
   'amazon prime',
   'apple',
+  'audible',
   'canva',
   'chatgpt',
   'claude',
+  'crunchyroll',
   'disney',
   'dropbox',
+  'duolingo',
   'figma',
   'github',
   'google',
   'hbo',
   'icloud',
+  'linkedin',
+  'mullvad',
   'microsoft',
   'netflix',
   'notion',
   'openai',
+  'patreon',
+  'playstation',
   'spotify',
+  'steam',
+  'twitch',
+  'vpn',
   'videoland',
+  'xbox',
   'youtube',
+]
+
+const SUBSCRIPTION_CATEGORY_PATTERNS = [
+  /apps?/,
+  /application/,
+  /cable/,
+  /cloud/,
+  /computer and data processing/,
+  /continuity/,
+  /digital goods/,
+  /internet/,
+  /large digital goods merchant/,
+  /membership/,
+  /music/,
+  /online services?/,
+  /software/,
+  /streaming/,
+  /subscription/,
+  /telecom/,
+  /video/,
+]
+
+const NON_SUBSCRIPTION_PATTERNS = [
+  /atm/,
+  /cash withdrawal/,
+  /charit/,
+  /commuter/,
+  /grocery/,
+  /parking/,
+  /railroad/,
+  /restaurant/,
+  /supermarket/,
+  /transfer (from|to)/,
 ]
 
 function daysBetween(a: string, b: string) {
@@ -88,9 +132,13 @@ function normalizeMerchant(description: string) {
 }
 
 function hasSubscriptionHint(charge: Charge, key: string) {
-  // Category is only a bonus. The app may not have categorization enabled yet.
-  if (charge.category === 'Subscriptions') return true
-  return KNOWN_SUBSCRIPTION_TERMS.some((term) => key.includes(term) || charge.description.toLowerCase().includes(term))
+  const description = charge.description.toLowerCase()
+  const category = (charge.category ?? '').toLowerCase()
+  const search = `${key} ${description} ${category}`
+
+  if (NON_SUBSCRIPTION_PATTERNS.some((pattern) => pattern.test(search))) return false
+  if (KNOWN_SUBSCRIPTION_TERMS.some((term) => search.includes(term))) return true
+  return SUBSCRIPTION_CATEGORY_PATTERNS.some((pattern) => pattern.test(category))
 }
 
 function detectFrequency(gaps: number[]): Frequency | null {
@@ -154,6 +202,17 @@ function buildSubscription(charges: Charge[], key: string): Subscription | null 
   }
 }
 
+function shouldReviewAsZombie(sub: Subscription, charges: Charge[], key: string, staleDays: number) {
+  const hinted = charges.some((charge) => hasSubscriptionHint(charge, key))
+  if (!hinted) return false
+
+  const cheapMonthly = sub.monthlyEquivalent > 0 && sub.monthlyEquivalent <= 15
+  const longRunning = sub.count >= 3
+  const quietEnoughToForget = staleDays >= Math.floor(CYCLE_DAYS[sub.frequency] * 0.55)
+
+  return cheapMonthly && (longRunning || quietEnoughToForget)
+}
+
 export async function GET() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -208,6 +267,13 @@ export async function GET() {
 
     if (staleDays <= activeLimit) {
       subscriptions.push(sub)
+      if (shouldReviewAsZombie(sub, charges, key, staleDays)) {
+        zombies.push({
+          ...sub,
+          staleDays,
+          zombieReason: 'forgotten',
+        })
+      }
     } else if (staleDays <= activeLimit * 2.25) {
       zombies.push({
         ...sub,

@@ -6,7 +6,7 @@ Usage:
 
     clf = TransactionClassifier("models/real_v1.pt")
 
-    # Each transaction is [name] or [name, amount]
+    # Each transaction is [name], [name, amount], or [name, amount, completed_date]
     predictions = clf.predict([
         ["Albert Heijn", -54.11],
         ["Spotify", -9.99],
@@ -25,6 +25,7 @@ import os
 import sys
 from pathlib import Path
 from typing import Union
+from datetime import datetime
 
 import numpy as np
 import torch
@@ -68,7 +69,7 @@ class TransactionClassifier:
 
     def predict(self, transactions: list) -> list[str]:
         """
-        transactions: list of [name] or [name, amount]
+        transactions: list of [name], [name, amount], or [name, amount, completed_date]
         returns:      list of category strings, same length
         """
         logits = self._logits(transactions)
@@ -129,24 +130,64 @@ class TransactionClassifier:
             convert_to_numpy=True,
         ).astype(np.float32)
 
-    def _amount_features(self, amounts: list[float]) -> torch.Tensor:
-        raw = np.array([
-            [a, np.log1p(abs(a)), 1.0 if a < 0 else 0.0]
-            for a in amounts
-        ], dtype=np.float32)
+    def _time_features(self, value) -> list[float]:
+        if value is None:
+            return [0.0, 0.0, 0.0, 0.0]
+
+        try:
+            raw = str(value).strip().replace("Z", "+00:00")
+            dt = datetime.fromisoformat(raw)
+        except ValueError:
+            return [0.0, 0.0, 0.0, 0.0]
+
+        dow = dt.weekday()
+        month = dt.month - 1
+        return [
+            float(np.sin(2 * np.pi * dow / 7)),
+            float(np.cos(2 * np.pi * dow / 7)),
+            float(np.sin(2 * np.pi * month / 12)),
+            float(np.cos(2 * np.pi * month / 12)),
+        ]
+
+    def _amount_features(self, amounts: list[float], dates: list[object | None]) -> torch.Tensor:
+        feature_dim = int(self.architecture.get("amount_dim", 3))
+        base = np.array(
+            [
+                [a, np.log1p(abs(a)), 1.0 if a < 0 else 0.0, *self._time_features(date)]
+                for a, date in zip(amounts, dates)
+            ],
+            dtype=np.float32,
+        )
+
+        if feature_dim < base.shape[1]:
+            raw = base[:, :feature_dim]
+        elif feature_dim > base.shape[1]:
+            # Keep the tensor width aligned with the checkpoint's own
+            # amt_stats even if a future checkpoint adds optional features.
+            pad = np.zeros((base.shape[0], feature_dim - base.shape[1]), dtype=np.float32)
+            raw = np.concatenate([base, pad], axis=1)
+        else:
+            raw = base
+
         mean = np.array(self.amt_stats["mean"], dtype=np.float32)
         std  = np.array(self.amt_stats["std"],  dtype=np.float32)
+        if mean.shape[0] != feature_dim or std.shape[0] != feature_dim:
+            raise ValueError(
+                "Checkpoint amt_stats length does not match architecture amount_dim "
+                f"({mean.shape[0]}/{std.shape[0]} vs {feature_dim})"
+            )
         return torch.from_numpy((raw - mean) / std).to(self.device)
 
     def _logits(self, transactions: list) -> torch.Tensor:
         names   = [str(t[0]) for t in transactions]
         amounts = [float(t[1]) if len(t) > 1 else 0.0 for t in transactions]
+        dates   = [t[2] if len(t) > 2 else None for t in transactions]
 
         embs = torch.from_numpy(self._embed(names)).to(self.device)
 
         with torch.no_grad():
             if self.architecture.get("use_amount", True):
-                amt = self._amount_features(amounts)
+                amt = self._amount_features(amounts, dates)
                 x   = torch.cat([embs, amt], dim=1)
             else:
                 x = embs

@@ -17,7 +17,7 @@ ARCHITECTURE = {
     "hidden_dims":  [512, 256],   # MLP hidden layer sizes
     "dropout":       0.1,          # dropout between every hidden layer
     "use_amount":    True,         # include transaction amount features
-    "amount_dim":    3,            # raw, log, sign  (do not change)
+    "amount_dim":    3,            # checkpoint may override this, e.g. time.pt uses 7
     "activation":    "gelu",       # "gelu" | "relu" | "silu"
 }
 
@@ -37,7 +37,7 @@ class TransactionNet(nn.Module):
     """
     MLP classifier on top of frozen BGE-M3 embeddings.
 
-    Input:  [embedding (1024-d) || amount_features (3-d)]  if use_amount
+    Input:  [embedding (1024-d) || numeric_features]        if use_amount
             [embedding (1024-d)]                            otherwise
     Output: logits over num_classes categories
     """

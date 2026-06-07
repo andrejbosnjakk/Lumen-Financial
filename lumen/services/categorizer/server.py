@@ -20,6 +20,7 @@ _classifier: TransactionClassifier | None = None
 class TransactionIn(BaseModel):
     description: str = Field(min_length=1)
     amount: float | None = None
+    completed_date: str | None = None
 
 
 class PredictRequest(BaseModel):
@@ -52,6 +53,8 @@ def get_classifier() -> TransactionClassifier:
 def to_model_input(transaction: TransactionIn) -> list[str | float]:
     if transaction.amount is None:
         return [transaction.description]
+    if transaction.completed_date:
+        return [transaction.description, transaction.amount, transaction.completed_date]
     return [transaction.description, transaction.amount]
 
 

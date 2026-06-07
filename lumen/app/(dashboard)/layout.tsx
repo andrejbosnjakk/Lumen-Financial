@@ -26,10 +26,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <SessionGuard>
-      <div className="flex h-screen overflow-hidden bg-lumen-bg">
+      <div className="flex h-dvh overflow-hidden bg-lumen-bg md:flex-row">
         <Sidebar email={user.email ?? ''} displayName={displayName} />
         <main className="flex-1 overflow-y-auto bg-lumen-bg">
-          <div className="max-w-[1360px] px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
+          <div className="mx-auto max-w-[1360px] px-4 pb-28 pt-20 sm:px-6 md:py-7 lg:px-8">
             {children}
           </div>
         </main>

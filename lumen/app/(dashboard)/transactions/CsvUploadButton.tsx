@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useCallback } from 'react'
+import { forwardRef, useRef, useState, useCallback, useEffect, useImperativeHandle } from 'react'
 import { motion } from 'framer-motion'
 import { Upload } from 'lucide-react'
 import Papa from 'papaparse'
@@ -12,29 +12,57 @@ interface Props {
   onUploadSuccess: () => void
 }
 
+export interface CsvUploadHandle {
+  processFile: (file: File) => void
+}
+
 type Status = { type: 'success' | 'error'; message: string }
 
 function uploadMessage(result: IngestResult) {
   const details = []
   if (result.duplicates > 0) details.push(`${result.duplicates} duplicates skipped`)
   if ((result.modelCategorized ?? 0) > 0) details.push(`${result.modelCategorized} categorized`)
-  if ((result.recategorizedDuplicates ?? 0) > 0) {
-    details.push(`${result.recategorizedDuplicates} duplicates recategorized`)
-  }
-  if ((result.removedExistingDuplicates ?? 0) > 0) {
-    details.push(`${result.removedExistingDuplicates} old duplicates removed`)
-  }
-
+  if ((result.recategorizedDuplicates ?? 0) > 0) details.push(`${result.recategorizedDuplicates} re-tagged`)
+  if ((result.removedExistingDuplicates ?? 0) > 0) details.push(`${result.removedExistingDuplicates} old dupes removed`)
   return details.length
     ? `Imported ${result.imported} transactions (${details.join(', ')})`
     : `Imported ${result.imported} transactions`
 }
 
-export default function CsvUploadButton({ onUploadSuccess }: Props) {
+function stageLabel(progress: number): string {
+  if (progress < 15) return 'Uploading data…'
+  if (progress < 88) return 'Categorizing transactions…'
+  return 'Saving to database…'
+}
+
+const CsvUploadButton = forwardRef<CsvUploadHandle, Props>(function CsvUploadButton({ onUploadSuccess }, ref) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const [status, setStatus] = useState<Status | null>(null)
+  const [progress, setProgress] = useState(0)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  }, [])
+
+  function startProgress() {
+    setProgress(0)
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    intervalRef.current = setInterval(() => {
+      setProgress(p => {
+        if (p >= 88) return p
+        const inc = p < 30 ? 5 : p < 60 ? 2 : 0.6
+        return Math.min(p + inc, 88)
+      })
+    }, 350)
+  }
+
+  function finishProgress() {
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    setProgress(100)
+  }
 
   const processFile = useCallback(async (file: File) => {
     setStatus(null)
@@ -48,10 +76,11 @@ export default function CsvUploadButton({ onUploadSuccess }: Props) {
       complete: async (results) => {
         const headers = (results.meta.fields ?? []) as string[]
         if (!validateColumns(headers)) {
-          setStatus({ type: 'error', message: 'Invalid CSV - missing required Revolut columns.' })
+          setStatus({ type: 'error', message: 'Invalid CSV — missing required Revolut columns.' })
           return
         }
         setUploading(true)
+        startProgress()
         try {
           const res = await fetch('/api/transactions/ingest', {
             method: 'POST',
@@ -60,20 +89,22 @@ export default function CsvUploadButton({ onUploadSuccess }: Props) {
           })
           const json = (await res.json()) as IngestResult & { error?: string }
           if (!res.ok) throw new Error(json.error ?? 'Upload failed')
-          setStatus({
-            type: 'success',
-            message: uploadMessage(json),
-          })
+          finishProgress()
+          setStatus({ type: 'success', message: uploadMessage(json) })
           clearAnalyticsCache()
           onUploadSuccess()
         } catch (err: unknown) {
           setStatus({ type: 'error', message: err instanceof Error ? err.message : 'Upload failed' })
         } finally {
           setUploading(false)
+          setTimeout(() => setProgress(0), 800)
         }
       },
+      error: () => setStatus({ type: 'error', message: 'Failed to parse CSV.' }),
     })
   }, [onUploadSuccess])
+
+  useImperativeHandle(ref, () => ({ processFile }), [processFile])
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault()
@@ -90,10 +121,10 @@ export default function CsvUploadButton({ onUploadSuccess }: Props) {
   }
 
   return (
-    <div className="flex flex-col items-end gap-1.5">
+    <div className="flex w-full flex-col items-stretch gap-1.5 sm:w-auto sm:items-end">
       <input ref={inputRef} type="file" accept=".csv" onChange={handleFileChange} className="hidden" />
       <motion.button
-        onClick={() => inputRef.current?.click()}
+        onClick={() => !uploading && inputRef.current?.click()}
         onDrop={handleDrop}
         onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
         onDragLeave={() => setDragOver(false)}
@@ -108,7 +139,7 @@ export default function CsvUploadButton({ onUploadSuccess }: Props) {
           borderColor: dragOver ? 'rgb(var(--lumen-accent-rgb))' : 'rgb(var(--lumen-accent-rgb) / 0.3)',
         }}
         transition={{ duration: 0.15 }}
-        className="flex items-center gap-2 px-4 py-2 rounded-xl border text-[13px] font-medium text-lumen-accent disabled:opacity-50 transition-colors"
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border px-4 py-2 text-[13px] font-medium text-lumen-accent transition-colors disabled:opacity-60 sm:w-auto"
       >
         {uploading ? (
           <motion.div
@@ -119,13 +150,33 @@ export default function CsvUploadButton({ onUploadSuccess }: Props) {
         ) : (
           <Upload size={14} />
         )}
-        {uploading ? 'Uploading...' : dragOver ? 'Drop to upload' : 'Upload CSV'}
+        {uploading ? 'Uploading…' : dragOver ? 'Drop to upload' : 'Upload CSV'}
       </motion.button>
-      {status && (
-        <p className={`text-[11px] ${status.type === 'success' ? 'text-lumen-success' : 'text-lumen-danger'}`}>
+
+      {/* Progress bar — visible while uploading */}
+      {uploading && (
+        <div className="w-full sm:w-44">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] text-lumen-muted">{stageLabel(progress)}</span>
+            <span className="text-[10px] tabular-nums text-lumen-muted">{Math.round(progress)}%</span>
+          </div>
+          <div className="h-[3px] w-full rounded-full bg-white/[0.07] overflow-hidden">
+            <motion.div
+              className="h-full rounded-full bg-lumen-accent"
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+            />
+          </div>
+        </div>
+      )}
+
+      {!uploading && status && (
+        <p className={`max-w-full text-left text-[11px] sm:max-w-[320px] sm:text-right ${status.type === 'success' ? 'text-lumen-success' : 'text-lumen-danger'}`}>
           {status.message}
         </p>
       )}
     </div>
   )
-}
+})
+
+export default CsvUploadButton

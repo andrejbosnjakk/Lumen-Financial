@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Eye, EyeOff, Loader2, Sparkles, Trash2 } from 'lucide-react'
+import { Eye, EyeOff, Info, Loader2, Sparkles, Trash2 } from 'lucide-react'
 
 type Provider = 'groq' | 'anthropic' | 'openai'
 
@@ -80,7 +80,7 @@ export default function AiProviderForm() {
   }
 
   async function handleRemove() {
-    if (!confirm('Remove AI provider? The AI assistant will stop working until you add a new key.')) return
+    if (!confirm('Remove your key? The AI assistant will fall back to the shared Groq key.')) return
     setRemoving(true)
     await fetch('/api/account/ai-settings', { method: 'DELETE' })
     setMaskedKey(null)
@@ -92,6 +92,16 @@ export default function AiProviderForm() {
 
   return (
     <div className="space-y-4">
+      {/* Shared key notice — shown until user adds their own */}
+      {!maskedKey && (
+        <div className="flex items-start gap-2.5 rounded-2xl border border-lumen-accent/20 bg-lumen-accent/[0.06] px-4 py-3">
+          <Info size={13} className="mt-0.5 shrink-0 text-lumen-accent" />
+          <p className="text-[12px] text-lumen-muted">
+            The AI chat already works using Lumen&apos;s shared Groq key. Adding your own key gives you dedicated access and avoids occasional rate limits — Groq&apos;s free tier is generous.
+          </p>
+        </div>
+      )}
+
       {/* Provider picker */}
       <div className="grid grid-cols-3 gap-3">
         {PROVIDERS.map(p => (
@@ -173,7 +183,7 @@ export default function AiProviderForm() {
           className="flex h-10 w-full items-center justify-center gap-2 rounded-2xl bg-lumen-accent text-sm font-semibold text-white transition-colors hover:bg-lumen-accent-dim disabled:opacity-50"
         >
           {saving ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
-          {saving ? 'Saving...' : 'Save key'}
+          {saving ? 'Saving...' : 'Save my key'}
         </button>
       )}
 

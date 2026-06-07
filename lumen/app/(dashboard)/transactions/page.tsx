@@ -4,8 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Transaction } from '@/lib/types'
 import FilterBar from './FilterBar'
 import TransactionRow from './TransactionRow'
+import TransactionCard from './TransactionCard'
 import Pagination from './Pagination'
-import CsvUploadButton from './CsvUploadButton'
+import CsvUploadButton, { type CsvUploadHandle } from './CsvUploadButton'
 import EditModal from './EditModal'
 
 const PAGE_SIZE = 50
@@ -26,6 +27,8 @@ export default function TransactionsPage() {
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
   const [deletingAll, setDeletingAll] = useState(false)
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false)
+  const [pageDragging, setPageDragging] = useState(false)
+  const uploadRef = useRef<CsvUploadHandle>(null)
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -137,25 +140,57 @@ export default function TransactionsPage() {
 
   const hasActiveFilters = debouncedSearch || category || dateFrom || dateTo
 
+  function handlePageDragOver(e: React.DragEvent) {
+    if (!e.dataTransfer.types.includes('Files')) return
+    e.preventDefault()
+    setPageDragging(true)
+  }
+
+  function handlePageDragLeave(e: React.DragEvent) {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) setPageDragging(false)
+  }
+
+  function handlePageDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setPageDragging(false)
+    const file = e.dataTransfer.files[0]
+    if (file) uploadRef.current?.processFile(file)
+  }
+
   return (
-    <div className="space-y-5">
-      <div className="animate-fade-up flex items-end justify-between gap-4">
+    <div
+      className="space-y-5 relative"
+      onDragOver={handlePageDragOver}
+      onDragLeave={handlePageDragLeave}
+      onDrop={handlePageDrop}
+    >
+      {/* Full-page drop overlay */}
+      {pageDragging && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center rounded-[28px] border-2 border-dashed border-lumen-accent/60 bg-lumen-accent/[0.07] backdrop-blur-[2px] pointer-events-none">
+          <div className="text-center">
+            <p className="text-lg font-semibold text-lumen-accent">Drop CSV to import</p>
+            <p className="mt-1 text-sm text-lumen-muted">Revolut account statement</p>
+          </div>
+        </div>
+      )}
+
+      <div className="animate-fade-up flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-lumen-text sm:text-4xl">Transactions</h1>
           {count > 0 && (
             <p className="mt-2 text-sm leading-6 text-lumen-muted">{count} total</p>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           {count > 0 && (
             <button
               onClick={() => setConfirmDeleteAll(true)}
-              className="px-3 py-1.5 text-[13px] font-medium text-lumen-danger border border-lumen-danger/40 rounded-lg hover:bg-lumen-danger/10 transition-colors"
+              className="h-11 rounded-2xl border border-lumen-danger/40 px-4 text-[13px] font-medium text-lumen-danger transition-colors hover:bg-lumen-danger/10"
             >
               Delete All
             </button>
           )}
-          <CsvUploadButton onUploadSuccess={() => { setPage(1); fetchTransactions() }} />
+          <CsvUploadButton ref={uploadRef} onUploadSuccess={() => { setPage(1); fetchTransactions() }} />
         </div>
       </div>
 
@@ -175,7 +210,7 @@ export default function TransactionsPage() {
         <p className="text-[13px] text-lumen-danger mb-4">{error}</p>
       )}
 
-      <div className="bg-lumen-surface rounded-2xl border border-lumen-border overflow-hidden">
+      <div className="rounded-2xl border border-lumen-border bg-lumen-surface md:overflow-hidden">
         {loading ? (
           <div className="p-12 flex items-center justify-center">
             <div className="w-5 h-5 border-2 border-lumen-accent/30 border-t-lumen-accent rounded-full animate-spin" />
@@ -187,7 +222,20 @@ export default function TransactionsPage() {
               : 'No transactions yet - upload a CSV to get started'}
           </div>
         ) : (
-          <table className="w-full">
+          <>
+          <div className="space-y-3 p-3 md:hidden">
+            {transactions.map((tx) => (
+              <TransactionCard
+                key={tx.id}
+                transaction={tx}
+                saving={savingId === tx.id}
+                onCategoryChange={handleCategoryChange}
+                onEdit={setEditingTx}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+          <table className="hidden w-full md:table">
             <thead>
               <tr className="border-b border-lumen-border bg-lumen-surface-2">
                 <th className="px-4 py-3 text-left text-[11px] font-medium text-lumen-muted uppercase tracking-wider">Date</th>
@@ -211,6 +259,7 @@ export default function TransactionsPage() {
               ))}
             </tbody>
           </table>
+          </>
         )}
       </div>
 

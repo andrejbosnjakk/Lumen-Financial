@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 
   // Parse rows — drops non-COMPLETED and malformed rows
   const staged: { row: RevolutRow; category: string }[] = []
-  const modelTargets: { stagedIndex: number; description: string; amount: number }[] = []
+  const modelTargets: { stagedIndex: number; description: string; amount: number; completed_date: string }[] = []
   const parsed = []
   let failed = 0
 
@@ -74,7 +74,12 @@ export async function POST(request: NextRequest) {
     const stagedIndex = staged.push({ row, category }) - 1
 
     if (description.trim() && Number.isFinite(amount) && row.State === 'COMPLETED') {
-      modelTargets.push({ stagedIndex, description, amount })
+      modelTargets.push({
+        stagedIndex,
+        description,
+        amount,
+        completed_date: row['Completed Date'] || row['Started Date'],
+      })
     }
   }
 
@@ -82,7 +87,11 @@ export async function POST(request: NextRequest) {
   if (modelTargets.length > 0) {
     try {
       const predictions = await predictCategories(
-        modelTargets.map(({ description, amount }) => ({ description, amount })),
+        modelTargets.map(({ description, amount, completed_date }) => ({
+          description,
+          amount,
+          completed_date,
+        })),
         { timeoutMs: 120000 }
       )
       const threshold = modelConfidenceThreshold()
