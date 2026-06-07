@@ -47,6 +47,7 @@
 - [x] **AI financial insights** — rule-based insights engine (`InsightsPanel.tsx` + `/api/insights`); surfaces velocity, anomaly, recurring, savings, pattern, and largest-spend insights with positive/warning/danger/neutral tones; shown on dashboard
 - [ ] **Month/date range filter** — transactions page already has per-column date range; still needed on analytics route (`?month=YYYY-MM`) and dashboard home
 - [ ] **Demo mode** — seed a sample dataset so judges can try the app without a real Revolut CSV
+- [ ] **Demo video on registration page** — embed a short product walkthrough video on the signup page (left panel) so new users understand the app before signing up
 - [ ] **Responsive / mobile layout** — collapse sidebar to bottom nav on small screens
 
 ## P4 — Future ideas (brainstormed)
