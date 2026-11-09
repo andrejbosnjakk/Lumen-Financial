@@ -99,13 +99,66 @@ create table if not exists user_ai_settings (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid references auth.users(id) on delete cascade,
   provider   text not null,
-  api_key    text not null,
+  api_key    text not null,  -- stored in plain text (hackathon prototype)
   created_at timestamptz default now(),
-  unique (user_id, provider)
+  updated_at timestamptz default now(),
+  unique (user_id)            -- one active provider per user (matches upsert onConflict)
 );
 
 alter table user_ai_settings enable row level security;
 
 create policy "user owns ai_settings"
   on user_ai_settings for all
+  using (auth.uid() = user_id);
+
+-- ---------------------------------------------------------------------------
+-- Tables below are used by the app but were originally created by hand
+-- in the Supabase dashboard. Columns reconstructed from the application code.
+-- ---------------------------------------------------------------------------
+
+create table if not exists profiles (
+  id            uuid primary key references auth.users(id) on delete cascade,
+  first_name    text,
+  last_name     text,
+  phone         text,
+  date_of_birth date,
+  updated_at    timestamptz default now()
+);
+
+alter table profiles enable row level security;
+create policy "user owns profile"
+  on profiles for all
+  using (auth.uid() = id);
+
+-- NOTE: api_key / api_secret are stored in plain text (hackathon prototype).
+create table if not exists brokerage_connections (
+  id           uuid primary key default gen_random_uuid(),
+  user_id      uuid references auth.users(id) on delete cascade,
+  broker       text not null,
+  api_key      text not null,
+  api_secret   text,
+  account_type text default 'live',
+  created_at   timestamptz default now(),
+  unique (user_id, broker)
+);
+
+alter table brokerage_connections enable row level security;
+create policy "user owns brokerage_connections"
+  on brokerage_connections for all
+  using (auth.uid() = user_id);
+
+create table if not exists portfolio_snapshots (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid references auth.users(id) on delete cascade,
+  broker      text not null,
+  total_value numeric(18, 2),
+  invested    numeric(18, 2),
+  ppl         numeric(18, 2),
+  cash        numeric(18, 2),
+  recorded_at timestamptz default now()
+);
+
+alter table portfolio_snapshots enable row level security;
+create policy "user owns portfolio_snapshots"
+  on portfolio_snapshots for all
   using (auth.uid() = user_id);

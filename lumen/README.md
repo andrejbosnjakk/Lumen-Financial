@@ -1,65 +1,19 @@
-# Lumen
+# Lumen: Next.js app
 
-Financial intelligence for your Revolut data. Upload a CSV, get automatic categorization and a spending dashboard.
+The web app and API routes. See the [root README](../README.md) for an overview and full setup.
 
-Built for HackDelft 2026 — Revolut AI Challenge.
-
----
-
-## Setup
-
-**1. Install dependencies**
 ```bash
+cp .env.local.example .env.local   # Supabase URL + anon key at minimum
 npm install
+npm run dev                        # http://localhost:3000
+npm run categorizer                # optional: ML categoriser on :8001
 ```
 
-**2. Set up environment**
-```bash
-cp .env.local.example .env.local
-```
-Fill in your Supabase project URL and anon key. Ask a teammate for these or find them in the Supabase dashboard under Project Settings → API.
+| Script | What it does |
+|---|---|
+| `npm run dev` | Next.js dev server |
+| `npm run categorizer` | Python categoriser (FastAPI, localhost:8001) |
+| `npm run demo` | Production build, then app + categoriser together |
+| `npm run lint` | ESLint |
 
-**3. Run the database migrations**
-
-Run the SQL in `../supabase/schema.sql` against your Supabase project (SQL editor in the Supabase dashboard).
-
-**4. Start the dev server**
-```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000). You'll be redirected to `/login`.
-
----
-
-## Project structure
-
-```
-app/
-├── (auth)/          login, signup — no sidebar
-├── (dashboard)/     all protected pages — sidebar layout
-│   ├── page.tsx         home / dashboard
-│   ├── transactions/    transaction table
-│   ├── analytics/       charts
-│   └── account/         profile + import history
-├── api/
-│   ├── transactions/    GET (list), PATCH (update category)
-│   │   └── ingest/      POST (CSV upload pipeline)
-│   └── analytics/       GET (aggregations)
-└── layout.tsx       root layout
-
-lib/
-├── supabase/        client.ts (browser), server.ts (server/API)
-├── categorizer.ts   keyword → category matching
-├── ingester.ts      Revolut CSV row parser
-└── types.ts         shared TypeScript types
-
-middleware.ts        auth redirect guard
-```
-
----
-
-## Contributing
-
-Read `CLAUDE.md` in this directory before making changes — it covers auth rules, what's stubbed vs working, and coding conventions.
-
-Stack: Next.js 14 · TypeScript · Tailwind · Supabase · Recharts · PapaParse
+Stack: Next.js 14 · TypeScript · Tailwind · Supabase · Recharts · PapaParse · Framer Motion
