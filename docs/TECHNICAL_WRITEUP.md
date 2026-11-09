@@ -38,10 +38,10 @@ Browser (Next.js 14 App Router — RSC + Client Components)
 ## Key Technical Decisions
 
 ### 1 · Universal Bank Parser Layer (`lib/parsers/`)
-A normalisation library converts raw exports from **10 banks** (Revolut, ING, ABN AMRO, Rabobank, Knab, ASN, SNS, Triodos, bunq, N26) into a single `NormalisedRow` schema before any downstream logic runs. Auto-detection from CSV headers and delimiters routes files to the correct parser without user intervention; a mismatch guard catches user errors (e.g. uploading an ING file after selecting Rabobank).
+A normalisation library converts raw CSV exports from **Revolut, ING, ABN AMRO, Rabobank and Knab** into a single `NormalisedRow` schema before any downstream logic runs. ASN, SNS, Triodos, bunq and N26 are supported through the PDF extraction path below; their CSV parsers are stubs. Auto-detection from CSV headers and delimiters routes files to the correct parser without user intervention; a mismatch guard catches user errors (e.g. uploading an ING file after selecting Rabobank).
 
 ### 2 · Two-Stage Categorisation
-Ingested rows pass through a deterministic rule engine first — 200+ Dutch merchant keywords covering 10 categories. Only rows that fall through to `Uncategorized` are escalated to the ML model, minimising latency and API cost. Users can override any category; corrections are stored and re-applied to future duplicates of the same transaction.
+Ingested rows pass through a deterministic keyword rule engine first. Every row is then sent in one batch to the Python categoriser: a BGE-M3 description embedding plus amount and cyclical date features, fed to an MLP (1031 → 512 → 256 → 41 classes). The model's prediction replaces the rule result when its softmax confidence is ≥ 0.45. If the service is unavailable, the import completes with rule-based categories. Users can override any category; corrections are stored and re-applied to future duplicates of the same transaction.
 
 ### 3 · LLM-Powered PDF Extraction
 Bank PDFs have no standard structure. Rather than maintaining per-bank PDF templates, we extract raw text with `pdf-parse` and prompt **Claude Haiku** to return a structured JSON array of transactions. The model handles multi-column layouts, wrapped descriptions, and mixed currencies in a single pass. Extracted rows then flow through the same normalisation and categorisation pipeline as CSV imports.
@@ -65,7 +65,9 @@ The `/api/portfolio/risk` endpoint fetches sector and country metadata from Yaho
 | `broker_imports` | Portfolio snapshot metadata (broker, filename, imported_at) |
 | `broker_positions` | Individual positions with avg cost, statement price, resolved Yahoo ticker |
 | `category_rules` | User-defined keyword → category overrides |
-| `user_ai_settings` | Encrypted API keys for optional AI providers (Groq, Claude, OpenAI) |
+| `user_ai_settings` | User-supplied API key for an optional AI provider (Groq, Claude, OpenAI); plain text, RLS-protected |
+| `brokerage_connections` | Trading 212 API credentials; plain text, RLS-protected |
+| `portfolio_snapshots` | Hourly portfolio value snapshots |
 | `profiles` | First name, last name, phone, date of birth |
 
 ---
@@ -73,9 +75,17 @@ The `/api/portfolio/risk` endpoint fetches sector and country metadata from Yaho
 ## Security & Compliance
 
 - **No credential sharing** — users upload their own exports; Lumen never receives bank login details.
-- **GDPR-compliant** — Terms of Service and Privacy Policy surfaced at registration with explicit opt-in; right-to-erasure implemented (account deletion wipes all data within 30 days).
+- **Consent at signup** — draft Terms of Service and Privacy Policy are shown at registration with an explicit opt-in checkbox. These were written for the hackathon and have not been legally reviewed.
 - **Session security** — configurable inactivity timeout (15 min default, 24 h with "remember me"); 60-second warning modal before sign-out.
 - **RLS at every layer** — API routes verify the Supabase session; database policies re-enforce ownership constraints independently.
+
+---
+
+## Known limitations
+
+- API keys (AI providers, Trading 212) are stored unencrypted. Row Level Security is the only protection.
+- The categoriser service has no authentication and must stay bound to localhost.
+- Five of the ten listed banks are PDF-only.
 
 ---
 
